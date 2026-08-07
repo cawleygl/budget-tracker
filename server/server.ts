@@ -8,48 +8,14 @@ import express, {
 } from "express";
 import { router } from "./routes/index.js";
 import { AppDataSource } from "./db/data-source.ts";
-import path from "path/win32";
-import favicon from "serve-favicon";
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
 
 const app = express();
 const port = 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.set("view engine", "ejs");
 
-try {
-  app.use(favicon('public/favicon.ico'));
-
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    console.log("Message Received:", req.method, req.url);
-    console.log(new Date(Date.now()).toString());
-    next();
-  });
-
-  app.use(router);
-
-  app.use((req: Request, res: Response) => {
-    console.error(req.method, req.body);
-    res.render("error", {
-      code: 404,
-      name: "Error",
-      message: "Route Not Found",
-    });
-  });
-} catch (error) {
-  console.error("-------- Error --------");
-  console.error(error);
-  app.use((req: Request, res: Response) => {
-    res.render("error", {
-      code: 500,
-      name: (error as Error).name,
-      message: (error as Error).message,
-    });
-  });
-}
+app.use(router);
 
 AppDataSource.initialize()
   .then(async () => {

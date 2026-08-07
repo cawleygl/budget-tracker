@@ -1,35 +1,14 @@
 {
   "name": "budget-tracker",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "npx tsx server.ts",
-    "dev": "nodemon -e ts,json,ejs --exec tsx server.ts",
-    "test": "npx tsc"
+    "start": "concurrently \"cd client && npm run start\" \"cd server && npm run start\"",
+    "dev": "concurrently \"cd client && npm run dev\" \"cd server && npm run dev\"",
+    "test": "concurrently \"cd client && npm run test\" \"cd server && npm run test\""
   },
   "dependencies": {
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
-    "dotenv": "^17.4.2",
-    "ejs": "^6.0.1",
-    "express": "~4.16.1",
-    "http-errors": "~1.6.3",
-    "morgan": "~1.9.1",
-    "pg": "^8.22.0",
-    "serve-favicon": "^2.5.1",
-    "typeorm": "0.3.31"
-  },
-  "devDependencies": {
-    "@types/express": "^5.0.6",
-    "@types/node": "^26.1.2",
-    "@types/serve-favicon": "^2.5.7",
-    "nodemon": "^3.1.14",
-    "tsx": "^4.23.1",
-    "typescript": "^7.0.2"
-  },
-  "overrides": {
-    "constantinople": "^3.1.1",
-    "core-js": "^3.32.3"
+    "concurrently": "^10.0.4"
   }
 }
