@@ -7,7 +7,8 @@ import type {
   Vendor,
   PostVendorPayload,
   PaymentMethod,
-  PostPaymentMethodPayload
+  PostPaymentMethodPayload,
+  IdResponsePayload
 } from "./dataTypes.tsx";
 
 export class ApiClient {
@@ -82,8 +83,8 @@ export class ApiClient {
   // POST: Create a budget
   public async createBudget(
     payload: PostBudgetPayload,
-  ): Promise<Budget> {
-    return this.request<Budget>(`/budgets/`, "POST", payload);
+  ): Promise<IdResponsePayload> {
+    return this.request<IdResponsePayload>(`/budgets/`, "POST", payload);
   }
     // PUT: Update a budget
   public async updateBudget(

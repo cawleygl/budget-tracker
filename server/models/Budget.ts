@@ -31,6 +31,6 @@ export class Budget {
   @UpdateDateColumn({ type: "timestamp with time zone" })
   updatedAt!: Date;
 
-  @OneToMany(() => Cost, (cost: Cost) => cost.budget, { eager: true })
+  @OneToMany(() => Cost, (cost: Cost) => cost.budget)
   costs!: Cost[];
 }

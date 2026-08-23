@@ -2,12 +2,25 @@ import { type Request, type Response } from "express";
 import { Controller } from "./Controller.ts";
 import { AppDataSource } from "../db/data-source.ts";
 import { Budget } from "../models/Budget.ts";
+import type { Repository, InsertResult, UpdateResult, DeleteResult } from "typeorm";
 
 export class BudgetController extends Controller {
+  private budgetRepository: Repository<Budget>;
+
+  constructor() {
+    console.log("----------- Budget Repository -----------");
+    super();
+    this.budgetRepository = AppDataSource.getRepository(Budget);
+  }
+
   // GET /budgets/ - Get all Budgets
-  static async all(req: Request, res: Response) {
+  public all = async (req: Request, res: Response): Promise<void> => {
     try {
-      const budgets: Budget[] | null = await AppDataSource.manager.find(Budget);
+      const budgets: Budget[] = await this.budgetRepository
+        .createQueryBuilder("budget")
+        .select("budget")
+        .getMany();
+
       if (!budgets) {
         res.status(404).json({ error: "Budgets not found" });
         return;
@@ -17,35 +30,41 @@ export class BudgetController extends Controller {
       console.error("Error fetching all budgets:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
-  }
+  };
 
   // POST /budgets - Create a Budget
-  static async create(req: Request, res: Response) {
+  public create = async (req: Request, res: Response): Promise<void> => {
     try {
-      const budget: Budget = await AppDataSource.manager.create(
-        Budget,
-        req.body,
-      );
-      await AppDataSource.manager.save(budget);
-      if (!budget) {
+      const result: InsertResult = await this.budgetRepository
+        .createQueryBuilder("budget")
+        .insert()
+        .values(req.body)
+        .returning("id")
+        .execute();
+
+      const generatedId: string = result.identifiers[0]?.id;
+
+      if (!generatedId) {
         res.status(400).json({ error: "Budget not created" });
         return;
       }
-      res.status(201).json(budget);
+      res.status(201).json({ id: generatedId });
     } catch (error) {
       console.error("Error creating budget:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
-  }
+  };
 
   // GET /budgets/:budgetId - Get a single Budget by ID + associated Costs
-  static async read(req: Request, res: Response) {
-    const id: string = Controller.parseIDFromParams(req.params.budgetId)
+  public read = async (req: Request, res: Response): Promise<void> => {
+    const id: string = super.parseIDFromParams(req.params.budgetId);
     try {
-      const budget: Budget | null = await AppDataSource.manager.findOneBy(
-        Budget,
-        { id },
-      );
+      const budget: Budget | null = await this.budgetRepository
+        .createQueryBuilder("budget")
+        .leftJoinAndSelect("budget.costs", "cost")
+        .where("budget.id = :budgetId", { budgetId: id })
+        .getOne();
+
       if (!budget) {
         res.status(404).json({ error: "Budget not found" });
         return;
@@ -55,31 +74,53 @@ export class BudgetController extends Controller {
       console.error("Error fetching budget:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
-  }
+  };
 
   // PUT /budgets/:budgetId - Update a Budget
-  static async update(req: Request, res: Response) {
+  public update = async (req: Request, res: Response): Promise<void> => {
     try {
-      await AppDataSource.manager.update(
-        Budget, 
-        { id: Controller.parseIDFromParams(req.params.budgetId) },
-        { ...req.body }
-      );
+      const result: UpdateResult = await this.budgetRepository
+        .createQueryBuilder("budget")
+        .update(Budget)
+        .set({ ...req.body })
+        .where("budget.id = :budgetId", {
+          budgetId: super.parseIDFromParams(req.params.budgetId),
+        })
+        .execute();
+
+      if (!result.affected || result.affected <= 0) {
+        res.status(404).json({ error: "Budget not found" });
+        return;
+      }
+
       res.status(204).send();
     } catch (error) {
       console.error("Error updating budget:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
-  }
+  };
 
   // DELETE /budgets/:budgetId - Delete a Budget
-  static async delete(req: Request, res: Response) {
+  public destroy = async (req: Request, res: Response): Promise<void> => {
     try {
-      await AppDataSource.manager.delete(Budget, Controller.parseIDFromParams(req.params.budgetId));
+      const result: DeleteResult = await this.budgetRepository
+        .createQueryBuilder("budget")
+        .delete()
+        .from(Budget)
+        .where("budget.id = :budgetId", {
+          budgetId: super.parseIDFromParams(req.params.budgetId),
+        })
+        .execute();
+
+      if (!result.affected || result.affected <= 0) {
+        res.status(404).json({ error: "Budget not found" });
+        return;
+      }
+
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting budget:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
-  }
+  };
 }

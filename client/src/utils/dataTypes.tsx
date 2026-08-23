@@ -51,6 +51,10 @@ export interface PostPaymentMethodPayload {
   name: string;
 }
 
+export interface IdResponsePayload {
+  id: string;
+}
+
 export interface BudgetCalculations {
 	status: BudgetStatus
   costTotal: number;
