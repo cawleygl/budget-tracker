@@ -6,7 +6,8 @@
   "scripts": {
     "start": "concurrently \"cd client && npm run start\" \"cd server && npm run start\"",
     "dev": "concurrently \"cd client && npm run dev\" \"cd server && npm run dev\"",
-    "test": "concurrently \"cd client && npm run test\" \"cd server && npm run test\""
+    "test": "concurrently \"cd client && npm run test\" \"cd server && npm run test\"",
+    "install": "concurrently \"cd client && npm install\" \"cd server && npm install\""
   },
   "dependencies": {
     "concurrently": "^10.0.4"

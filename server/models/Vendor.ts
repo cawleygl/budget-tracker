@@ -5,12 +5,12 @@ import { Cost } from "./Cost.ts"
 export class Vendor {
 
 		@PrimaryGeneratedColumn('uuid')
-		id!: number
+		id!: string
 
 		@Column({ type: "varchar", length: 64 })
 		name!: string
 
-		@OneToMany(() => Cost, (cost: Cost) => cost.vendor)
+		@OneToMany(() => Cost, (cost: Cost) => cost.vendor, { onDelete: "SET NULL" })
 		costs!: Cost
 
 }

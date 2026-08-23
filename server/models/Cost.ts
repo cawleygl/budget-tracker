@@ -13,7 +13,7 @@ import { PaymentMethod } from "./PaymentMethod.ts";
 @Entity()
 export class Cost {
   @PrimaryGeneratedColumn('uuid')
-  id!: number;
+  id!: string;
 
   @Column({ type: "decimal", precision: 10, scale: 2 })
   amount!: number;
@@ -27,15 +27,16 @@ export class Cost {
   @UpdateDateColumn({ type: "timestamp with time zone" })
   updatedAt!: Date;
 
-  @ManyToOne(() => Budget, (budget: Budget) => budget.costs)
+  @ManyToOne(() => Budget, (budget: Budget) => budget.costs, { onDelete: "CASCADE" })
   budget!: Budget;
 
-  @ManyToOne(() => Vendor, (vendor: Vendor) => vendor.costs)
+  @ManyToOne(() => Vendor, (vendor: Vendor) => vendor.costs, { eager: true })
   vendor!: Vendor;
 
   @ManyToOne(
     () => PaymentMethod,
     (payment_method: PaymentMethod) => payment_method.costs,
+    { eager: true }
   )
   payment_method!: PaymentMethod;
 }

@@ -8,11 +8,11 @@ export const router: express.Router = express.Router({mergeParams: true});
 // POST create cost on a budget
 router.post('/', CostController.create);
 
-// GET all costs on a budget
-router.get('/', CostController.show);
+// GET a cost
+router.get('/:costId', CostController.read);
 
-// // PUT update cost by ID on a budget
-// router.put('/:id', CostController.update);
+// PUT update cost by ID on a budget
+router.put('/:costId', CostController.update);
 
 // // DELETE cost by ID on a budget
-// router.delete('/:id', CostController.delete);
+router.delete('/:costId', CostController.delete);

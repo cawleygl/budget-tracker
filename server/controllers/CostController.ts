@@ -1,58 +1,72 @@
 import { type Request, type Response } from "express";
+import { Controller } from "./Controller.ts";
 import { AppDataSource } from "../db/data-source.ts";
 import { Cost } from "../models/Cost.ts";
 
-export class CostController {
+export class CostController extends Controller {
   // POST /costs - Create a Cost
   static async create(req: Request, res: Response) {
-    console.log("Controller");
-    console.log(req.body);
-    const body = { budget: req.params.budgetId, ...req.body };
-    const cost: Cost = await AppDataSource.manager.create(Cost, body);
-    await AppDataSource.manager.save(cost);
-    console.log(cost);
-    if (!cost) {
-      res.status(400).json({ error: "Cost not created" });
-      return;
+    const body = {
+      budget: Controller.parseIDFromParams(req.params.budgetId),
+      ...req.body,
+    };
+    try {
+      const cost: Cost = await AppDataSource.manager.create(Cost, body);
+      await AppDataSource.manager.save(cost);
+      console.log(cost);
+      if (!cost) {
+        res.status(400).json({ error: "Cost not created" });
+        return;
+      }
+      res.status(201).json(cost);
+    } catch (error) {
+      console.error("Error creating cost:", error);
+      res.status(500).json({ error: "Internal Server Error" });
     }
-    res.status(201).json({ cost });
   }
 
-  // GET /costs/:id - Get a single Cost by ID
-  static async show(req: Request, res: Response) {
-    // const id: string = (req.params.id && Array.isArray(req.params.id) ? req.params.id[0] : req.params.id) ?? "";
-    // const cost: Cost | null = await AppDataSource.manager.findOneBy(Cost, { id });
-    // const costs: Cost[] = await AppDataSource.manager.find(Cost, { where: { cost: { id } } });
-    // if (!cost) {
-    //   res.status(404).send("Cost not found");
-    //   return;
-    // }
-    // res.render("costs/showCost", { cost, costs, title: cost.name });
+  // GET /costs/:id - Get a single Cost
+  static async read(req: Request, res: Response) {
+    const id: string = Controller.parseIDFromParams(req.params.costId)
+    try {
+      const cost: Cost | null = await AppDataSource.manager.findOneBy(
+        Cost,
+        { id },
+      );
+      if (!cost) {
+        res.status(404).json({ error: "Cost not found" });
+        return;
+      }
+      res.status(200).json(cost);
+    } catch (error) {
+      console.error("Error fetching cost:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   }
 
-  // PUT /costs/:id - Update a Cost
+  // PUT /costs/:costId - Update a Cost
   static async update(req: Request, res: Response) {
-    // const costRepository = AppDataSource.getRepository(Cost);
-    // const cost = await costRepository.findOneBy({ id: parseInt(req.params.id) });
-    // if (!cost) {
-    //   res.status(404).send("Cost not found");
-    //   return;
-    // }
-    // costRepository.merge(cost, req.body);
-    // await costRepository.save(cost);
-    // res.redirect(`/costs/${cost.id}`);
+    try {
+      await AppDataSource.manager.update(
+        Cost, 
+        { id: Controller.parseIDFromParams(req.params.costId) },
+        { ...req.body }
+      );
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error updating cost:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   }
 
-  // DELETE /costs/:id - Delete a Cost
+  // DELETE /costs/:costId - Delete a Cost
   static async delete(req: Request, res: Response) {
-    // const costRepository = AppDataSource.getRepository(Cost);
-    // const cost = await costRepository.findOneBy({ id: parseInt(req.params.id) });
-    // if (!cost) {
-    //   res.status(404).send("Cost not found");
-    //   return;
-    // }
-    // await costRepository.remove(cost);
-    // res.redirect("/costs");
-  }  
-  
+    try {
+      await AppDataSource.manager.delete(Cost, Controller.parseIDFromParams(req.params.costId));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting cost:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
 }
