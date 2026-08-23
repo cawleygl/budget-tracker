@@ -5,18 +5,18 @@ import { Budget } from "../models/Budget.ts";
 import type { Repository, InsertResult, UpdateResult, DeleteResult } from "typeorm";
 
 export class BudgetController extends Controller {
-  private budgetRepository: Repository<Budget>;
+  private repository: Repository<Budget>;
 
   constructor() {
     console.log("----------- Budget Repository -----------");
     super();
-    this.budgetRepository = AppDataSource.getRepository(Budget);
-  }
+    this.repository = AppDataSource.getRepository(Budget);
+  };
 
   // GET /budgets/ - Get all Budgets
   public all = async (req: Request, res: Response): Promise<void> => {
     try {
-      const budgets: Budget[] = await this.budgetRepository
+      const budgets: Budget[] = await this.repository
         .createQueryBuilder("budget")
         .select("budget")
         .getMany();
@@ -27,7 +27,7 @@ export class BudgetController extends Controller {
       }
       res.status(200).json(budgets);
     } catch (error) {
-      console.error("Error fetching all budgets:", error);
+      console.error("Error fetching all Budgets:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   };
@@ -35,7 +35,7 @@ export class BudgetController extends Controller {
   // POST /budgets - Create a Budget
   public create = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result: InsertResult = await this.budgetRepository
+      const result: InsertResult = await this.repository
         .createQueryBuilder("budget")
         .insert()
         .values(req.body)
@@ -50,19 +50,19 @@ export class BudgetController extends Controller {
       }
       res.status(201).json({ id: generatedId });
     } catch (error) {
-      console.error("Error creating budget:", error);
+      console.error("Error creating Budget:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   };
 
   // GET /budgets/:budgetId - Get a single Budget by ID + associated Costs
   public read = async (req: Request, res: Response): Promise<void> => {
-    const id: string = super.parseIDFromParams(req.params.budgetId);
+    const budgetId: string = super.parseIDFromParams(req.params.budgetId);
     try {
-      const budget: Budget | null = await this.budgetRepository
+      const budget: Budget | null = await this.repository
         .createQueryBuilder("budget")
         .leftJoinAndSelect("budget.costs", "cost")
-        .where("budget.id = :budgetId", { budgetId: id })
+        .where("budget.id = :budgetId", { budgetId })
         .getOne();
 
       if (!budget) {
@@ -71,7 +71,7 @@ export class BudgetController extends Controller {
       }
       res.status(200).json(budget);
     } catch (error) {
-      console.error("Error fetching budget:", error);
+      console.error("Error fetching Budget:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   };
@@ -79,7 +79,7 @@ export class BudgetController extends Controller {
   // PUT /budgets/:budgetId - Update a Budget
   public update = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result: UpdateResult = await this.budgetRepository
+      const result: UpdateResult = await this.repository
         .createQueryBuilder("budget")
         .update(Budget)
         .set({ ...req.body })
@@ -95,7 +95,7 @@ export class BudgetController extends Controller {
 
       res.status(204).send();
     } catch (error) {
-      console.error("Error updating budget:", error);
+      console.error("Error updating Budget:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   };
@@ -103,7 +103,7 @@ export class BudgetController extends Controller {
   // DELETE /budgets/:budgetId - Delete a Budget
   public destroy = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result: DeleteResult = await this.budgetRepository
+      const result: DeleteResult = await this.repository
         .createQueryBuilder("budget")
         .delete()
         .from(Budget)
@@ -119,7 +119,7 @@ export class BudgetController extends Controller {
 
       res.status(204).send();
     } catch (error) {
-      console.error("Error deleting budget:", error);
+      console.error("Error deleting Budget:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   };

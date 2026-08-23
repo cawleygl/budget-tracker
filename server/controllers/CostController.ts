@@ -2,71 +2,111 @@ import { type Request, type Response } from "express";
 import { Controller } from "./Controller.ts";
 import { AppDataSource } from "../db/data-source.ts";
 import { Cost } from "../models/Cost.ts";
+import type { Repository, InsertResult, UpdateResult, DeleteResult } from "typeorm";
 
 export class CostController extends Controller {
+  private repository: Repository<Cost>;
+
+  constructor() {
+    console.log("----------- Cost Repository -----------");
+    super();
+    this.repository = AppDataSource.getRepository(Cost);
+  };
+    
   // POST /costs - Create a Cost
-  static async create(req: Request, res: Response) {
+  public create = async (req: Request, res: Response): Promise<void> => {
     const body = {
-      budget: Controller.parseIDFromParams(req.params.budgetId),
+      budget: super.parseIDFromParams(req.params.budgetId),
       ...req.body,
     };
     try {
-      const cost: Cost = await AppDataSource.manager.create(Cost, body);
-      await AppDataSource.manager.save(cost);
-      console.log(cost);
-      if (!cost) {
+      const result: InsertResult = await this.repository
+        .createQueryBuilder("cost")
+        .insert()
+        .values(body)
+        .returning("id")
+        .execute();
+
+      const generatedId: string = result.identifiers[0]?.id;
+
+      if (!generatedId) {
         res.status(400).json({ error: "Cost not created" });
         return;
       }
-      res.status(201).json(cost);
+      res.status(201).json({ id: generatedId });
     } catch (error) {
-      console.error("Error creating cost:", error);
+      console.error("Error creating Cost:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
-  }
+  };
 
   // GET /costs/:id - Get a single Cost
-  static async read(req: Request, res: Response) {
-    const id: string = Controller.parseIDFromParams(req.params.costId)
+  public read = async (req: Request, res: Response): Promise<void> => {
+    const costId: string = super.parseIDFromParams(req.params.costId);
     try {
-      const cost: Cost | null = await AppDataSource.manager.findOneBy(
-        Cost,
-        { id },
-      );
+      const cost: Cost | null = await this.repository
+        .createQueryBuilder("cost")
+        .leftJoinAndSelect("cost.vendor", "vendor.name")
+        .leftJoinAndSelect("cost.payment_method", "payment_method.name")
+        .where("cost.id = :costId", { costId })
+        .getOne();
+
       if (!cost) {
         res.status(404).json({ error: "Cost not found" });
         return;
       }
       res.status(200).json(cost);
     } catch (error) {
-      console.error("Error fetching cost:", error);
+      console.error("Error fetching Cost:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
-  }
+  };
 
   // PUT /costs/:costId - Update a Cost
-  static async update(req: Request, res: Response) {
+  public update = async (req: Request, res: Response): Promise<void> => {
     try {
-      await AppDataSource.manager.update(
-        Cost, 
-        { id: Controller.parseIDFromParams(req.params.costId) },
-        { ...req.body }
-      );
+      const result: UpdateResult = await this.repository
+        .createQueryBuilder("cost")
+        .update(Cost)
+        .set({ ...req.body })
+        .where("cost.id = :costId", {
+          costId: super.parseIDFromParams(req.params.costId),
+        })
+        .execute();
+
+      if (!result.affected || result.affected <= 0) {
+        res.status(404).json({ error: "Cost not found" });
+        return;
+      }
+
       res.status(204).send();
     } catch (error) {
-      console.error("Error updating cost:", error);
+      console.error("Error updating Cost:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
-  }
+  };
 
   // DELETE /costs/:costId - Delete a Cost
-  static async delete(req: Request, res: Response) {
+  public destroy = async (req: Request, res: Response): Promise<void> => {
     try {
-      await AppDataSource.manager.delete(Cost, Controller.parseIDFromParams(req.params.costId));
+      const result: DeleteResult = await this.repository
+        .createQueryBuilder("cost")
+        .delete()
+        .from(Cost)
+        .where("cost.id = :costId", {
+          costId: super.parseIDFromParams(req.params.costId),
+        })
+        .execute();
+
+      if (!result.affected || result.affected <= 0) {
+        res.status(404).json({ error: "Cost not found" });
+        return;
+      }
+
       res.status(204).send();
     } catch (error) {
-      console.error("Error deleting cost:", error);
+      console.error("Error deleting Cost:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
-  }
+  };
 }

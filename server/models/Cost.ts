@@ -30,13 +30,12 @@ export class Cost {
   @ManyToOne(() => Budget, (budget: Budget) => budget.costs, { onDelete: "CASCADE" })
   budget!: Budget;
 
-  @ManyToOne(() => Vendor, (vendor: Vendor) => vendor.costs, { eager: true })
+  @ManyToOne(() => Vendor, (vendor: Vendor) => vendor.costs)
   vendor!: Vendor;
 
   @ManyToOne(
     () => PaymentMethod,
-    (payment_method: PaymentMethod) => payment_method.costs,
-    { eager: true }
+    (payment_method: PaymentMethod) => payment_method.costs
   )
   payment_method!: PaymentMethod;
 }

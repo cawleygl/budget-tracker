@@ -3,17 +3,19 @@ import { PaymentMethodController } from '../controllers/PaymentMethodController.
 
 export const router: express.Router = express.Router({mergeParams: true});
 
+const controller: PaymentMethodController = new PaymentMethodController();
+
 // GET get all payment methods
-router.get('/', PaymentMethodController.all);
+router.get('/', controller.all);
 
 // GET get one payment methods
-router.get('/:paymentId', PaymentMethodController.read);
+router.get('/:paymentId', controller.read);
 
 // POST create a payment method
-router.post('/', PaymentMethodController.create);
+router.post('/', controller.create);
 
 // PUT update payment method by ID on a budget
-router.put('/:paymentId', PaymentMethodController.update);
+router.put('/:paymentId', controller.update);
 
 // // DELETE payment method by ID on a budget
-router.delete('/:paymentId', PaymentMethodController.delete);
+router.delete('/:paymentId', controller.destroy);
