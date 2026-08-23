@@ -62,6 +62,8 @@ export class BudgetController extends Controller {
       const budget: Budget | null = await this.repository
         .createQueryBuilder("budget")
         .leftJoinAndSelect("budget.costs", "cost")
+        .leftJoinAndSelect("cost.vendor", "vendor")
+        .leftJoinAndSelect("cost.payment_method", "payment_method")
         .where("budget.id = :budgetId", { budgetId })
         .getOne();
 

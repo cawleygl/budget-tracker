@@ -144,25 +144,22 @@ export class ApiClient {
   }
     // POST: Read a vendor
   public async readVendor(
-    budgetId: string,
     vendorId: string,
   ): Promise<Vendor> {
-    return this.request<Vendor>(`/budgets/${budgetId}/vendors/${vendorId}`);
+    return this.request<Vendor>(`/vendors/${vendorId}`);
   }
   // PUT: Update a vendor
   public async updateVendor(
-    budgetId: string,
     vendorId: string,
     payload: PostVendorPayload,
   ): Promise<void> {
-    this.request<Vendor>(`/budgets/${budgetId}/vendors/${vendorId}`, "PUT", payload);
+    this.request<Vendor>(`/vendors/${vendorId}`, "PUT", payload);
   }
   // DELETE: Delete a vendor
   public async deleteVendor(
-    budgetId: string,
     vendorId: string,
   ): Promise<void> {
-    this.request<Vendor>(`/budgets/${budgetId}/vendors/${vendorId}`, "DELETE");
+    this.request<Vendor>(`/vendors/${vendorId}`, "DELETE");
   }
 
   /* PAYMENT METHODS */

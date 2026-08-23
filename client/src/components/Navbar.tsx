@@ -24,7 +24,16 @@ const pages: PageLink[] = [
     path: "/budgets/new",
   },
 ];
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
+const settings = [
+  {
+    name: "Vendors",
+    path: "/vendors",
+  },
+  {
+    name: "Payment Methods",
+    path: "/payments",
+  },
+];
 
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
@@ -176,9 +185,14 @@ function ResponsiveAppBar() {
               {/* AVATAR DROPDOWN LINKS */}
 
               {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
+                <MenuItem
+                  key={setting.name}
+                  component="a"
+                  href={setting.path}
+                  onClick={handleCloseUserMenu}
+                >
                   <Typography sx={{ textAlign: "center" }}>
-                    {setting}
+                    {setting.name}
                   </Typography>
                 </MenuItem>
               ))}

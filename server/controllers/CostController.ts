@@ -46,8 +46,8 @@ export class CostController extends Controller {
     try {
       const cost: Cost | null = await this.repository
         .createQueryBuilder("cost")
-        .leftJoinAndSelect("cost.vendor", "vendor.name")
-        .leftJoinAndSelect("cost.payment_method", "payment_method.name")
+        .leftJoinAndSelect("cost.vendor", "vendor")
+        .leftJoinAndSelect("cost.payment_method", "payment_method")
         .where("cost.id = :costId", { costId })
         .getOne();
 
