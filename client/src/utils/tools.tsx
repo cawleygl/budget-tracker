@@ -56,10 +56,10 @@ export function formatCostType(type: CostType): string {
 
 // Format Dates
 export function formatDateNumbered(date: Date | null): string {
-  if (date === null || date === undefined) return "None";
+  if (date === null || date === undefined) return "Never";
   return dayjs(date).format('MM/DD/YYYY');
 }
 export function formatDateWritten(date: Date | null): string {
-  if (date === null || date === undefined) return "None";
+  if (date === null || date === undefined) return "Never";
   return dayjs(date).format('LL');
 }
