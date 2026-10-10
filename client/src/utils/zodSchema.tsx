@@ -9,5 +9,6 @@ export const PostBudgetPayload = z.object({
 
 export const PostCostPayload = z.object({
 	description: z.string(),
-	amount: z.coerce.number()
+	amount: z.coerce.number(),
+	type: z.enum(["CREDIT", "EXPENSE"]),
 });

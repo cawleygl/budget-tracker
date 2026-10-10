@@ -4,7 +4,7 @@ import type {
   Budget,
   BudgetStatus,
 } from "./dataTypes.tsx";
-import { BudgetStatuses } from "./dataTypes.tsx";
+import { BudgetStatuses, CostTypes } from "./dataTypes.tsx";
 import { regulateDate } from "../utils/tools.tsx";
 
 /**
@@ -110,43 +110,42 @@ function calculateStatus(
 }
 
 /**
- * Sum costs in a costList array
+ * Sum costs in a costList array as signed amounts
  *
- * What are my running costs?
+ * Credits add; expenses subtract.
  *
  * @param costList - List of costs
- * @return - sum as number
+ * @return - signed net of credits and expenses
  */
 function sumCosts(costList: Cost[]): number {
   if (costList.length <= 0) {
     return 0;
   }
 
-  return costList.reduce(
-    (acc: number, cost: Cost) => Number(acc) + Number(cost.amount),
-    0,
-  );
+  return costList.reduce((acc: number, cost: Cost) => {
+    const amount = Number(cost.amount);
+    return cost.type === CostTypes.credit ? acc + amount : acc - amount;
+  }, 0);
 }
 
 /**
  * Find the amount remaining in your budget
  *
- * What is my remaining budget?
- *
- * Budget Amount - Total Costs
+ * Budget Amount + signed cost total
+ * (expenses are negative, so they reduce remaining)
  *
  * @param amount: number - Total budget amount
- * @param costTotal - Sum of costs
+ * @param costTotal - Signed sum of costs
  * @return - number
  */
 function calculateAmountRemaining(amount: number, costTotal: number): number {
-  const difference = amount - costTotal;
+  const remaining = amount + costTotal;
 
-  if (difference < 0) {
+  if (remaining < 0) {
     return 0;
   }
 
-  return difference;
+  return remaining;
 }
 
 /**

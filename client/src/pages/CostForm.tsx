@@ -11,6 +11,11 @@ import {
   ListItemIcon,
   Checkbox,
   IconButton,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from "@mui/material";
 import { Add } from "@mui/icons-material";
 import NumberField from "../components/NumberField.tsx";
@@ -22,6 +27,8 @@ import {
   type PostCostPayload,
   type PostVendorPayload,
   type PostPaymentMethodPayload,
+  type CostType,
+  CostTypes,
 } from "../utils/dataTypes.tsx";
 import { PostCostPayload as ZodPostCostPayload } from "../utils/zodSchema.tsx";
 
@@ -35,6 +42,7 @@ function CostFormPage() {
 
   const [costDescription, setCostDescription] = useState<string>("");
   const [costAmount, setCostAmount] = useState<number>(0);
+  const [costType, setCostType] = useState<CostType>(CostTypes.expense);
 
   const [checkedVendor, setCheckedVendor] = useState<string>("");
   const [vendorEntry, setVendorEntry] = useState<string>("");
@@ -52,6 +60,7 @@ function CostFormPage() {
         const fetchedCost: Cost = await api.readCost(budgetID, costID);
         setCostDescription(fetchedCost.description);
         setCostAmount(fetchedCost.amount);
+        setCostType(fetchedCost.type ?? CostTypes.expense);
         setCheckedVendor(fetchedCost.vendor.id);
         setCheckedPaymentMethod(fetchedCost.payment_method.id);
         console.log("---------- COST SET ----------");
@@ -100,11 +109,13 @@ function CostFormPage() {
       const formValues = ZodPostCostPayload.parse({
         description: formData.get("description"),
         amount: formData.get("amount"),
+        type: formData.get("type"),
       });
 
       const allValues = {
         description: formValues.description,
         amount: formValues.amount,
+        type: formValues.type,
         vendor: checkedVendor || undefined,
         payment_method: checkedPaymentMethod || undefined,
       } as PostCostPayload;
@@ -229,6 +240,28 @@ function CostFormPage() {
           onValueChange={(value) => setCostAmount(value ?? 0)}
           required
         />
+
+        <FormControl>
+          <FormLabel id="cost-type-label">Type</FormLabel>
+          <RadioGroup
+            row
+            aria-labelledby="cost-type-label"
+            name="type"
+            value={costType}
+            onChange={(event) => setCostType(event.target.value as CostType)}
+          >
+            <FormControlLabel
+              value={CostTypes.expense}
+              control={<Radio />}
+              label="Expense"
+            />
+            <FormControlLabel
+              value={CostTypes.credit}
+              control={<Radio />}
+              label="Credit"
+            />
+          </RadioGroup>
+        </FormControl>
 
         {/* Payment Method List */}
         <Box>

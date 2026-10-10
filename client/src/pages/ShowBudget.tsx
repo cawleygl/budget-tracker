@@ -15,6 +15,7 @@ import { api } from "../utils/api.tsx";
 import {
   formatCurrency,
   formatBudgetStatus,
+  formatCostType,
   formatDateNumbered,
   formatDateWritten,
 } from "../utils/tools.tsx";
@@ -170,6 +171,7 @@ function ShowBudgetPage() {
             <TableCell>Vendor</TableCell>
             <TableCell>Payment Method</TableCell>
             <TableCell>Cost</TableCell>
+            <TableCell>Type</TableCell>
             <TableCell>Amount</TableCell>
             <TableCell></TableCell>
           </TableRow>
@@ -187,6 +189,7 @@ function ShowBudgetPage() {
                   : "N/A"}
               </TableCell>
               <TableCell>{cost.description}</TableCell>
+              <TableCell>{formatCostType(cost.type)}</TableCell>
               <TableCell>{formatCurrency(cost.amount)}</TableCell>
               <TableCell>
                 <ButtonGroup>
@@ -211,6 +214,7 @@ function ShowBudgetPage() {
             <TableCell></TableCell>
             <TableCell></TableCell>
             <TableCell>Total</TableCell>
+            <TableCell></TableCell>
             <TableCell>
               {formatCurrency(budgetCalculations.costTotal)}
             </TableCell>

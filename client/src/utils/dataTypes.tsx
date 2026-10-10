@@ -26,10 +26,23 @@ export interface PostBudgetPayload {
   expiration: Date;
 }
 
+export const CostTypes = {
+  credit: "CREDIT",
+  expense: "EXPENSE",
+} as const;
+
+export type CostType = (typeof CostTypes)[keyof typeof CostTypes];
+
+export const FormattedCostTypes = {
+  credit: "Credit",
+  expense: "Expense",
+} as const;
+
 export interface Cost {
   id: string;
   description: string;
   amount: number;
+  type: CostType;
   vendor: Vendor;
   payment_method: PaymentMethod;
   createdAt: Date;
@@ -39,6 +52,7 @@ export interface Cost {
 export interface PostCostPayload {
   description: string;
   amount: number;
+  type: CostType;
   vendor: string;
   payment_method: string;
 }

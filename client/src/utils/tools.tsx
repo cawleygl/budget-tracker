@@ -4,6 +4,9 @@ import {
   type BudgetStatus,
   BudgetStatuses,
   FormattedBudgetStatuses,
+  type CostType,
+  CostTypes,
+  FormattedCostTypes,
 } from "./dataTypes";
 
 // Format currency values in frontend
@@ -37,6 +40,18 @@ export function formatBudgetStatus(status: BudgetStatus): string {
 export function regulateDate(date: Date): Date {
   date.setHours(0, 0, 0, 0);
   return date;
+}
+
+// Format cost type for display
+export function formatCostType(type: CostType): string {
+  switch (type) {
+    case CostTypes.credit:
+      return FormattedCostTypes.credit;
+    case CostTypes.expense:
+      return FormattedCostTypes.expense;
+    default:
+      return FormattedCostTypes.expense;
+  }
 }
 
 // Format Dates

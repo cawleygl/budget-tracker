@@ -10,6 +10,13 @@ import { Budget } from "./Budget.ts";
 import { Vendor } from "./Vendor.ts";
 import { PaymentMethod } from "./PaymentMethod.ts";
 
+export const CostTypes = {
+  CREDIT: "CREDIT",
+  EXPENSE: "EXPENSE",
+} as const;
+
+export type CostType = (typeof CostTypes)[keyof typeof CostTypes];
+
 @Entity()
 export class Cost {
   @PrimaryGeneratedColumn('uuid')
@@ -20,6 +27,13 @@ export class Cost {
 
   @Column({ type: "varchar", length: 255 })
   description!: string;
+
+  @Column({
+    type: "enum",
+    enum: CostTypes,
+    default: CostTypes.EXPENSE,
+  })
+  type!: CostType;
 
   @CreateDateColumn({ type: "timestamp with time zone" })
   createdAt!: Date;
