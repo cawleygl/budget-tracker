@@ -55,9 +55,11 @@ export function formatCostType(type: CostType): string {
 }
 
 // Format Dates
-export function formatDateNumbered(date: Date): string {
+export function formatDateNumbered(date: Date | null): string {
+  if (date === null || date === undefined) return "None";
   return dayjs(date).format('MM/DD/YYYY');
 }
-export function formatDateWritten(date: Date): string {
+export function formatDateWritten(date: Date | null): string {
+  if (date === null || date === undefined) return "None";
   return dayjs(date).format('LL');
 }

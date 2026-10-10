@@ -12,6 +12,8 @@ import {
   ListItemIcon,
   Checkbox,
   IconButton,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import { Add } from "@mui/icons-material";
 import NumberField from "../components/NumberField.tsx";
@@ -40,8 +42,10 @@ function BudgetFormPage() {
 
   const [budgetName, setBudgetName] = useState<string>("");
   const [budgetAmount, setBudgetAmount] = useState<number>(0);
-  const [budgetStart, setBudgetStart] = useState<Dayjs>(dayjs(new Date()));
-  const [budgetExpiration, setBudgetExpiration] = useState<Dayjs>(dayjs(new Date()));
+  const [budgetStart, setBudgetStart] = useState<Dayjs | null>(dayjs(new Date()));
+  const [budgetExpiration, setBudgetExpiration] = useState<Dayjs | null>(null);
+  // Repeating budgets have a start and expiration; running budgets have neither
+  const [isRepeating, setIsRepeating] = useState<boolean>(true);
 
     useEffect(() => {
     const fetchBudget = async () => {
@@ -49,8 +53,11 @@ function BudgetFormPage() {
         const fetchedBudget: Budget = await api.getBudgetById(budgetID);
         setBudgetName(fetchedBudget.name);
         setBudgetAmount(fetchedBudget.amount);
-        setBudgetStart(dayjs(fetchedBudget.start));
-        setBudgetExpiration(dayjs(fetchedBudget.expiration));
+        setBudgetStart(fetchedBudget.start ? dayjs(fetchedBudget.start) : null);
+        setBudgetExpiration(
+          fetchedBudget.expiration ? dayjs(fetchedBudget.expiration) : null,
+        );
+        setIsRepeating(!!fetchedBudget.start || !!fetchedBudget.expiration);
         console.log("---------- BUDGET SET ----------");
         console.log(budgetID);
         console.log(fetchedBudget.name);
@@ -75,20 +82,20 @@ function BudgetFormPage() {
       const formValues = ZodPostBudgetPayload.parse({
         name: formData.get("name"),
         amount: formData.get("amount"),
-        start: formData.get("start"),
-        expiration: formData.get("expiration"),
       });
 
+      // Running budgets have no start or expiration
       const allValues = {
         name: formValues.name,
         amount: formValues.amount,
-        start: budgetStart.toDate(),
-        expiration: budgetExpiration.toDate(),
+        start: isRepeating && budgetStart ? budgetStart.toDate() : null,
+        expiration:
+          isRepeating && budgetExpiration ? budgetExpiration.toDate() : null,
       } as PostBudgetPayload;
 
       let navigateBudgetID;
       if (!budgetID || budgetID === "") {
-        const { id: budgetID } = await api.createBudget(formValues);
+        const { id: budgetID } = await api.createBudget(allValues);
         navigateBudgetID = budgetID;
         console.log("Create Budget:", );
       } else {
@@ -121,7 +128,7 @@ function BudgetFormPage() {
         />
 
         <NumberField
-          label="Amount"
+          label={isRepeating ? "Amount" : "Starting Amount"}
           id="amount"
           name="amount"
           min={0}
@@ -131,30 +138,44 @@ function BudgetFormPage() {
           required
         />
 
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            label="Start"
-            name="start"
-            value={budgetStart}
-            maxDate={dayjs(budgetExpiration)} 
-            onChange={(date) => setBudgetStart(date ?? dayjs())}
-            slotProps={{
-              textField: { required: true },
-            }}
-          />
-        </LocalizationProvider>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            label="Expiration"
-            name="expiration"
-            value={budgetExpiration}
-            minDate={dayjs(budgetStart)} 
-            onChange={(date) => setBudgetExpiration(date ?? dayjs())}
-            slotProps={{
-              textField: { required: true },
-            }}
-          />
-        </LocalizationProvider>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={isRepeating}
+              onChange={(event) => setIsRepeating(event.target.checked)}
+            />
+          }
+          label={isRepeating ? "Repeating" : "Running"}
+        />
+
+        {isRepeating && (
+          <>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="Start"
+                name="start"
+                value={budgetStart}
+                maxDate={budgetExpiration ?? undefined}
+                onChange={(date) => setBudgetStart(date ?? null)}
+                slotProps={{
+                  textField: { required: true },
+                }}
+              />
+            </LocalizationProvider>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="Expiration"
+                name="expiration"
+                value={budgetExpiration}
+                minDate={budgetStart ?? undefined}
+                onChange={(date) => setBudgetExpiration(date ?? null)}
+                slotProps={{
+                  textField: { required: true },
+                }}
+              />
+            </LocalizationProvider>
+          </>
+        )}
 
         <Button type="submit" variant="contained">
           Submit

@@ -127,7 +127,9 @@ function ShowBudgetPage() {
         {formatDateWritten(budgetObj.start)} -{" "}
         {formatDateWritten(budgetObj.expiration)}
       </p>
-      {budgetCalculations.status === BudgetStatuses.active ? (
+      {budgetCalculations.status === BudgetStatuses.active &&
+      budgetObj.start &&
+      budgetObj.expiration ? (
         <>
           <p>
             Expected Cost to Date:{" "}

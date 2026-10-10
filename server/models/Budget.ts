@@ -19,11 +19,11 @@ export class Budget {
   @Column({ type: "decimal", precision: 10, scale: 2 })
   amount!: number;
 
-  @Column({ type: "timestamp with time zone" })
-  start!: Date;
+  @Column({ type: "timestamp with time zone", nullable: true })
+  start!: Date | null;
 
-  @Column({ type: "timestamp with time zone" })
-  expiration!: Date;
+  @Column({ type: "timestamp with time zone", nullable: true })
+  expiration!: Date | null;
 
   @CreateDateColumn({ type: "timestamp with time zone" })
   createdAt!: Date;

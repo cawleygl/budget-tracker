@@ -15,15 +15,24 @@ import { regulateDate } from "../utils/tools.tsx";
 export function calculateBudget(
   budgetObj: Budget
 ): BudgetCalculations {
-  const expiration: Date = new Date(budgetObj.expiration);
-  const start: Date = new Date(budgetObj.start);
+  const expiration: Date | null = budgetObj.expiration
+    ? new Date(budgetObj.expiration)
+    : null;
+  const start: Date | null = budgetObj.start
+    ? new Date(budgetObj.start)
+    : null;
   const today: Date = regulateDate(new Date(Date.now()));
 
   const status: string = calculateStatus(expiration, start, today);
   const costTotal = sumCosts(budgetObj.costs);
   const amountRemaining = calculateAmountRemaining(budgetObj.amount, costTotal);
 
-  if (status !== BudgetStatuses.active) {
+  // Without both a start and an expiration, per-day pacing can't be calculated
+  if (
+    status !== BudgetStatuses.active ||
+    expiration === null ||
+    start === null
+  ) {
     return {
       status,
       costTotal,
@@ -90,20 +99,20 @@ function isBefore(date1: Date, date2: Date): boolean {
  *
  * NOT_STARTED / ACTIVE / EXPIRED
  *
- * @param expiration - Date
- * @param start - Date
+ * @param expiration - Date, or null if the budget never expires
+ * @param start - Date, or null if the budget has no start date
  * @param today - Date
  * @return BudgetStatus - Status from enum
  */
 function calculateStatus(
-  expiration: Date,
-  start: Date,
+  expiration: Date | null,
+  start: Date | null,
   today: Date,
 ): BudgetStatus {
-  if (isBefore(today, start)) {
+  if (start !== null && isBefore(today, start)) {
     return BudgetStatuses.not_started;
   }
-  if (isBefore(expiration, today)) {
+  if (expiration !== null && isBefore(expiration, today)) {
     return BudgetStatuses.expired;
   }
   return BudgetStatuses.active;
