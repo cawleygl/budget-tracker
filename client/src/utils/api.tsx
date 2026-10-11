@@ -71,14 +71,30 @@ export class ApiClient {
     }
   }
 
+  // Postgres decimal columns are returned by the server as strings
+  // (e.g. "1001.00"). Convert them to numbers so they can safely be used in
+  // arithmetic ("1001.00" + -25 would concatenate into "1001.00-25").
+  private parseCost(cost: Cost): Cost {
+    return { ...cost, amount: Number(cost.amount) };
+  }
+
+  private parseBudget(budget: Budget): Budget {
+    return {
+      ...budget,
+      amount: Number(budget.amount),
+      costs: budget.costs?.map((cost: Cost) => this.parseCost(cost)),
+    };
+  }
+
   /* BUDGETS */
   // GET: Fetch all budgets
   public async getAllBudgets(): Promise<Budget[]> {
-    return this.request<Budget[]>(`/budgets/`);
+    const budgets = await this.request<Budget[]>(`/budgets/`);
+    return budgets.map((budget: Budget) => this.parseBudget(budget));
   }
   // GET: Fetch a single budget + associate costs by ID
   public async getBudgetById(id: string): Promise<Budget> {
-    return this.request<Budget>(`/budgets/${id}`);
+    return this.parseBudget(await this.request<Budget>(`/budgets/${id}`));
   }
   // POST: Create a budget
   public async createBudget(
@@ -113,7 +129,9 @@ export class ApiClient {
     budgetId: string,
     costId: string,
   ): Promise<Cost> {
-    return this.request<Cost>(`/budgets/${budgetId}/costs/${costId}`);
+    return this.parseCost(
+      await this.request<Cost>(`/budgets/${budgetId}/costs/${costId}`),
+    );
   }
   // PUT: Update a cost
   public async updateCost(
