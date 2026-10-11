@@ -1,5 +1,5 @@
 import { useState, useEffect, type SubmitEvent } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { PostBudgetPayload as ZodPostBudgetPayload } from "../utils/zodSchema.tsx";
 import {
   Box,
@@ -24,6 +24,7 @@ import { api } from "../utils/api.tsx";
 import {
   type Budget,
   type Cost,
+  type BudgetPrefill,
   type Vendor,
   type PaymentMethod,
   type PostCostPayload,
@@ -42,11 +43,24 @@ function BudgetFormPage() {
   const navigate = useNavigate();
 
   const [budgetID] = useState<string>(params.budgetId || "");
+  const location = useLocation();
 
-  const [budgetName, setBudgetName] = useState<string>("");
-  const [budgetAmount, setBudgetAmount] = useState<number>(0);
-  const [budgetStart, setBudgetStart] = useState<Dayjs | null>(dayjs(new Date()));
-  const [budgetExpiration, setBudgetExpiration] = useState<Dayjs | null>(null);
+
+  // Values passed in when creating a budget from an existing one (Reset Budget)
+  const [prefill] = useState<BudgetPrefill | null>(
+    !params.budgetId ? (location.state as BudgetPrefill | null) : null,
+  );
+
+  const [budgetName, setBudgetName] = useState<string>(prefill?.name ?? "");
+  const [budgetAmount, setBudgetAmount] = useState<number>(
+    prefill?.amount ?? 0,
+  );
+  const [budgetStart, setBudgetStart] = useState<Dayjs | null>(
+    dayjs(prefill?.start ?? new Date()),
+  );
+  const [budgetExpiration, setBudgetExpiration] = useState<Dayjs | null>(
+    prefill?.expiration ? dayjs(prefill.expiration) : null,
+  );
   // Repeating budgets have a start and expiration; running budgets have neither
   const [isRepeating, setIsRepeating] = useState<boolean>(true);
 

@@ -73,3 +73,25 @@ export function formatDateWritten(date: Date | null): string {
   if (date === null || date === undefined) return "Never";
   return dayjs(date).format('LL');
 }
+
+/**
+ * Calculate the dates of a reset budget
+ *
+ * The new budget starts when the old one expired and runs for the same
+ * number of days. Whole calendar days are added so the time of day is kept
+ * across daylight saving changes.
+ *
+ * @param expiration - Expiration date of the budget being reset
+ * @param totalDays - Total days in the budget being reset
+ * @return - start and expiration dates for the new budget
+ */
+export function calculateResetDates(
+  expiration: Date,
+  totalDays: number,
+): { start: Date; expiration: Date } {
+  const start = dayjs(expiration);
+  return {
+    start: start.toDate(),
+    expiration: start.add(Math.round(totalDays), "day").toDate(),
+  };
+}

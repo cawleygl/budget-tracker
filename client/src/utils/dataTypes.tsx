@@ -26,6 +26,15 @@ export interface PostBudgetPayload {
   expiration: Date | null;
 }
 
+// Values passed to the create budget form (via router state) to prefill it,
+// e.g. when resetting an expired budget. Dates are ISO strings.
+export interface BudgetPrefill {
+  name: string;
+  amount: number;
+  start: string;
+  expiration: string;
+}
+
 export const CostTypes = {
   credit: "CREDIT",
   expense: "EXPENSE",

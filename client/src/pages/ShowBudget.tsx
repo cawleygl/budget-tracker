@@ -23,6 +23,7 @@ import {
   formatCurrencyFromCost,
   formatBudgetStatus,
   formatDateNumbered,
+  calculateResetDates,
 } from "../utils/tools.tsx";
 import {
   calculateBudget,
@@ -30,6 +31,7 @@ import {
 } from "../utils/calculator.tsx";
 import {
   type Budget,
+  type BudgetPrefill,
   type Cost,
   type BudgetCalculations,
   BudgetStatuses,
@@ -133,6 +135,24 @@ function ShowBudgetPage() {
     }
   };
 
+  // Open the create budget form prefilled from this (expired) budget: same
+  // name and amount, starting when this one expired and lasting as long
+  const handleResetBudget = (): void => {
+    if (!budgetObj.expiration) return;
+
+    const { start, expiration } = calculateResetDates(
+      new Date(budgetObj.expiration),
+      budgetCalculations.totalDays,
+    );
+    const prefill: BudgetPrefill = {
+      name: budgetObj.name,
+      amount: budgetObj.amount,
+      start: start.toISOString(),
+      expiration: expiration.toISOString(),
+    };
+    navigate("/budgets/new", { state: prefill });
+  };
+
   // Hide the page until the budget has loaded
   if (budgetType === "loading") return null;
 
@@ -197,7 +217,11 @@ function ShowBudgetPage() {
             start={budgetObj.start}
             expiration={budgetObj.expiration}
             calculations={budgetCalculations}
-            expiredActions={<Button variant="contained">Reset Budget</Button>}
+            expiredActions={
+              <Button variant="contained" onClick={handleResetBudget}>
+                Reset Budget
+              </Button>
+            }
           />
           {budgetCalculations.status === BudgetStatuses.not_started && (
             <Button variant="contained" sx={{ mb: 3 }}>
