@@ -16,7 +16,11 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  Paper,
+  Stack,
+  Typography,
 } from "@mui/material";
+import PageHeader from "../components/PageHeader.tsx";
 import { Add } from "@mui/icons-material";
 import NumberField from "../components/NumberField.tsx";
 import { api } from "../utils/api.tsx";
@@ -217,146 +221,166 @@ function CostFormPage() {
 
   return (
     <>
-      <h1>{costID ? "Edit" : "Add"} Cost</h1>
+      <PageHeader title={`${costID ? "Edit" : "Add"} Cost`} />
+      <Paper variant="outlined" sx={{ p: 3, maxWidth: 560 }}>
       <form onSubmit={handleSubmitCost}>
-        <TextField
-          variant="outlined"
-          label="Description"
-          id="description"
-          name="description"
-          type="text"
-          value={costDescription}
-          onChange={(event) => setCostDescription(event.target.value)}
-          required
-        />
+        <Stack spacing={2.5}>
+          <TextField
+            variant="outlined"
+            label="Description"
+            id="description"
+            name="description"
+            type="text"
+            value={costDescription}
+            onChange={(event) => setCostDescription(event.target.value)}
+            required
+          />
 
-        <NumberField
-          label="Amount"
-          id="amount"
-          name="amount"
-          min={0}
-          step={0.01}
-          value={costAmount}
-          onValueChange={(value) => setCostAmount(value ?? 0)}
-          required
-        />
+          <NumberField
+            label="Amount"
+            id="amount"
+            name="amount"
+            min={0}
+            step={0.01}
+            value={costAmount}
+            onValueChange={(value) => setCostAmount(value ?? 0)}
+            required
+          />
 
-        <FormControl>
-          <FormLabel id="cost-type-label">Type</FormLabel>
-          <RadioGroup
-            row
-            aria-labelledby="cost-type-label"
-            name="type"
-            value={costType}
-            onChange={(event) => setCostType(event.target.value as CostType)}
-          >
-            <FormControlLabel
-              value={CostTypes.expense}
-              control={<Radio />}
-              label="Expense"
-            />
-            <FormControlLabel
-              value={CostTypes.credit}
-              control={<Radio />}
-              label="Credit"
-            />
-          </RadioGroup>
-        </FormControl>
+          <FormControl>
+            <FormLabel id="cost-type-label">Type</FormLabel>
+            <RadioGroup
+              row
+              aria-labelledby="cost-type-label"
+              name="type"
+              value={costType}
+              onChange={(event) => setCostType(event.target.value as CostType)}
+            >
+              <FormControlLabel
+                value={CostTypes.expense}
+                control={<Radio />}
+                label="Expense"
+              />
+              <FormControlLabel
+                value={CostTypes.credit}
+                control={<Radio />}
+                label="Credit"
+              />
+            </RadioGroup>
+          </FormControl>
 
-        {/* Payment Method List */}
-        <Box>
-          <List>
-            {paymentMethodList.map((paymentMethod: PaymentMethod) => (
-              <ListItem key={paymentMethod.id} disablePadding>
-                <ListItemButton
-                  onClick={() => handleCheckPaymentMethod(paymentMethod.id)}
-                >
-                  <ListItemIcon>
-                    <Checkbox
-                      edge="start"
-                      checked={checkedPaymentMethod === paymentMethod.id}
-                      tabIndex={-1}
-                      disableRipple
-                      slotProps={{
-                        input: {
-                          "aria-labelledby": `checkbox-list-label-${paymentMethod.name}`,
-                        },
-                      }}
-                    />
-                  </ListItemIcon>
-                  <ListItemText primary={paymentMethod.name} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-            {
-              <ListItem disablePadding>
-                <IconButton
-                  onClick={(event) => handleCreatePaymentMethod(event)}
-                >
-                  <Add />
-                </IconButton>
-                <TextField
-                  variant="outlined"
-                  label="New Payment Method"
-                  id="paymentMethod"
-                  name="paymentMethod"
-                  type="text"
-                  value={paymentMethodEntry}
-                  onChange={(event) =>
-                    setPaymentMethodEntry(event.target.value)
-                  }
-                />
-              </ListItem>
-            }
-          </List>
-        </Box>
+          {/* Payment Method List */}
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Payment Method
+            </Typography>
+            <List dense>
+              {paymentMethodList.map((paymentMethod: PaymentMethod) => (
+                <ListItem key={paymentMethod.id} disablePadding>
+                  <ListItemButton
+                    onClick={() => handleCheckPaymentMethod(paymentMethod.id)}
+                  >
+                    <ListItemIcon>
+                      <Checkbox
+                        edge="start"
+                        checked={checkedPaymentMethod === paymentMethod.id}
+                        tabIndex={-1}
+                        disableRipple
+                        slotProps={{
+                          input: {
+                            "aria-labelledby": `checkbox-list-label-${paymentMethod.name}`,
+                          },
+                        }}
+                      />
+                    </ListItemIcon>
+                    <ListItemText primary={paymentMethod.name} />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+              {
+                <ListItem disablePadding>
+                  <IconButton
+                    color="primary"
+                    onClick={(event) => handleCreatePaymentMethod(event)}
+                  >
+                    <Add />
+                  </IconButton>
+                  <TextField
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    label="New Payment Method"
+                    id="paymentMethod"
+                    name="paymentMethod"
+                    type="text"
+                    value={paymentMethodEntry}
+                    onChange={(event) =>
+                      setPaymentMethodEntry(event.target.value)
+                    }
+                  />
+                </ListItem>
+              }
+            </List>
+          </Box>
 
-        {/* Vendor List */}
-        <Box>
-          <List>
-            {vendorList.map((vendor: Vendor) => (
-              <ListItem key={vendor.id} disablePadding>
-                <ListItemButton onClick={() => handleCheckVendor(vendor.id)}>
-                  <ListItemIcon>
-                    <Checkbox
-                      edge="start"
-                      checked={checkedVendor === vendor.id}
-                      tabIndex={-1}
-                      disableRipple
-                      slotProps={{
-                        input: {
-                          "aria-labelledby": `checkbox-list-label-${vendor.name}`,
-                        },
-                      }}
-                    />
-                  </ListItemIcon>
-                  <ListItemText primary={vendor.name} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-            {
-              <ListItem disablePadding>
-                <IconButton onClick={(event) => handleCreateVendor(event)}>
-                  <Add />
-                </IconButton>
-                <TextField
-                  variant="outlined"
-                  label="New Vendor"
-                  id="vendor"
-                  name="vendor"
-                  type="text"
-                  value={vendorEntry}
-                  onChange={(event) => setVendorEntry(event.target.value)}
-                />
-              </ListItem>
-            }
-          </List>
-        </Box>
+          {/* Vendor List */}
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Vendor
+            </Typography>
+            <List dense>
+              {vendorList.map((vendor: Vendor) => (
+                <ListItem key={vendor.id} disablePadding>
+                  <ListItemButton onClick={() => handleCheckVendor(vendor.id)}>
+                    <ListItemIcon>
+                      <Checkbox
+                        edge="start"
+                        checked={checkedVendor === vendor.id}
+                        tabIndex={-1}
+                        disableRipple
+                        slotProps={{
+                          input: {
+                            "aria-labelledby": `checkbox-list-label-${vendor.name}`,
+                          },
+                        }}
+                      />
+                    </ListItemIcon>
+                    <ListItemText primary={vendor.name} />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+              {
+                <ListItem disablePadding>
+                  <IconButton
+                    color="primary"
+                    onClick={(event) => handleCreateVendor(event)}
+                  >
+                    <Add />
+                  </IconButton>
+                  <TextField
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    label="New Vendor"
+                    id="vendor"
+                    name="vendor"
+                    type="text"
+                    value={vendorEntry}
+                    onChange={(event) => setVendorEntry(event.target.value)}
+                  />
+                </ListItem>
+              }
+            </List>
+          </Box>
 
-        <Button type="submit" variant="contained">
-          Submit
-        </Button>
+          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+            <Button type="submit" variant="contained">
+              Submit
+            </Button>
+          </Box>
+        </Stack>
       </form>
+      </Paper>
     </>
   );
 }

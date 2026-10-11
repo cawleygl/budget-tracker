@@ -2,6 +2,7 @@ import { useState, useEffect, type MouseEvent } from "react";
 import { useNavigate } from "react-router";
 import {
   Table,
+  TableContainer,
   TableHead,
   TableBody,
   TableRow,
@@ -9,7 +10,9 @@ import {
   Button,
   IconButton,
   ButtonGroup,
+  Paper,
 } from "@mui/material";
+import PageHeader from "../components/PageHeader.tsx";
 import { api } from "../utils/api.tsx";
 import type { Vendor } from "../utils/dataTypes.tsx";
 import { Edit, Clear } from "@mui/icons-material";
@@ -58,46 +61,51 @@ function ShowVendorPage() {
 
   return (
     <>
-      <h1>Vendors</h1>
-      <Table sx={{ minWidth: 650 }} aria-label="vendor table">
-        <TableHead>
-          <TableRow>
-            <TableCell>Vendor</TableCell>
-            <TableCell></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {vendorList.map((vendor) => (
-            <TableRow key={vendor.id}>
-              <TableCell>
-                <Button
-                  variant="contained"
-                  type="button"
-                  onClick={() => handleVendorNavigate(vendor.id)}
-                >
-                  {vendor.name}
-                </Button>
-              </TableCell>
-              <TableCell>
-                <ButtonGroup>
-                  <IconButton
-                    onClick={() =>
-                      navigate(`/vendors/${vendor.id}/edit`)
-                    }
-                  >
-                    <Edit />
-                  </IconButton>
-                  <IconButton
-                    onClick={(event) => handleDeleteVendor(event, vendor.id)}
-                  >
-                    <Clear />
-                  </IconButton>
-                </ButtonGroup>
-              </TableCell>
+      <PageHeader title="Vendors" />
+      <TableContainer component={Paper} variant="outlined">
+        <Table aria-label="vendor table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Vendor</TableCell>
+              <TableCell></TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {vendorList.map((vendor) => (
+              <TableRow key={vendor.id} hover>
+                <TableCell>
+                  <Button
+                    variant="text"
+                    sx={{ fontWeight: 600 }}
+                    type="button"
+                    onClick={() => handleVendorNavigate(vendor.id)}
+                  >
+                    {vendor.name}
+                  </Button>
+                </TableCell>
+                <TableCell>
+                  <ButtonGroup>
+                    <IconButton
+                      color="primary"
+                      onClick={() =>
+                        navigate(`/vendors/${vendor.id}/edit`)
+                      }
+                    >
+                      <Edit />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={(event) => handleDeleteVendor(event, vendor.id)}
+                    >
+                      <Clear />
+                    </IconButton>
+                  </ButtonGroup>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </>
   );
 }

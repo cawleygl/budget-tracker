@@ -1,8 +1,8 @@
 import { useState, useEffect, type SubmitEvent, type MouseEvent } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
-  Box,
   Table,
+  TableContainer,
   TableHead,
   TableBody,
   TableRow,
@@ -10,7 +10,12 @@ import {
   Button,
   IconButton,
   ButtonGroup,
+  Box,
+  Chip,
+  Paper,
+  Typography,
 } from "@mui/material";
+import PageHeader from "../components/PageHeader.tsx";
 import RepeatingBudgetVisuals from "../components/RepeatingBudgetVisuals.tsx";
 import { api } from "../utils/api.tsx";
 import {
@@ -28,8 +33,9 @@ import {
   type Cost,
   type BudgetCalculations,
   BudgetStatuses,
+  CostTypes,
 } from "../utils/dataTypes.tsx";
-import { Edit, Clear } from "@mui/icons-material";
+import { Edit, Clear, Add } from "@mui/icons-material";
 
 function ShowBudgetPage() {
   const params = useParams();
@@ -137,139 +143,179 @@ function ShowBudgetPage() {
       ? runningTotals[runningTotals.length - 1]
       : Number(budgetObj.amount);
 
+  const statusColor =
+    budgetCalculations.status === BudgetStatuses.active
+      ? "success"
+      : budgetCalculations.status === BudgetStatuses.expired
+        ? "error"
+        : "default";
+
   return (
     <>
+      <PageHeader
+        title={budgetObj.name}
+        badge={
+          isRunning ? (
+            <Chip label="Running" color="secondary" size="small" />
+          ) : (
+            <Chip
+              label={formatBudgetStatus(budgetCalculations.status)}
+              color={statusColor}
+              size="small"
+            />
+          )
+        }
+        actions={
+          <Button
+            variant="outlined"
+            startIcon={<Edit />}
+            onClick={() => navigate(`/budgets/${budgetID}/edit`)}
+          >
+            Edit
+          </Button>
+        }
+      />
+
       {isRunning ? (
-        <>
-          <h1>
-            {budgetObj.name}
-            <IconButton
-              onClick={() => navigate(`/budgets/${budgetID}/edit`)}
-            >
-              <Edit />
-            </IconButton>
-          </h1>
-          <p>Current Balance: {formatCurrencyFromAmount(currentBalance)}</p>
-        </>
+        <Paper variant="outlined" sx={{ p: 2, mb: 3, maxWidth: 360 }}>
+          <Typography variant="caption" color="text.secondary">
+            Current Balance
+          </Typography>
+          <Typography
+            variant="h4"
+            sx={{ color: currentBalance < 0 ? "error.main" : "success.main" }}
+          >
+            {formatCurrencyFromAmount(currentBalance)}
+          </Typography>
+        </Paper>
       ) : (
         <>
-          <h1>
-            {budgetObj.name} - {formatBudgetStatus(budgetCalculations.status)}
-            <IconButton
-              onClick={() => navigate(`/budgets/${budgetID}/edit`)}
-            >
-              <Edit />
-            </IconButton>
-          </h1>
           <RepeatingBudgetVisuals
             budgetAmount={budgetObj.amount}
             start={budgetObj.start}
             expiration={budgetObj.expiration}
             calculations={budgetCalculations}
           />
-          {budgetCalculations.status === BudgetStatuses.expired ? (
-            <>
-              <p>
-                <Button variant="contained">Reset Budget</Button>
-              </p>
-            </>
-          ) : (
-            <></>
+          {budgetCalculations.status === BudgetStatuses.expired && (
+            <Button variant="contained" sx={{ mb: 3 }}>
+              Reset Budget
+            </Button>
           )}
-          {budgetCalculations.status === BudgetStatuses.not_started ? (
-            <>
-              <p>
-                <Button variant="contained">Start Budget</Button>
-              </p>
-            </>
-          ) : (
-            <></>
+          {budgetCalculations.status === BudgetStatuses.not_started && (
+            <Button variant="contained" sx={{ mb: 3 }}>
+              Start Budget
+            </Button>
           )}
         </>
       )}
 
-      <Table sx={{ minWidth: 650 }} aria-label="budget table">
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Vendor</TableCell>
-            <TableCell>Payment Method</TableCell>
-            <TableCell>Cost</TableCell>
-            <TableCell>Amount</TableCell>
-            {isRunning && <TableCell>Running Total</TableCell>}
-            <TableCell></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {isRunning && (
-            <TableRow key="starting-amount">
-              <TableCell>{formatDateNumbered(budgetObj.createdAt)}</TableCell>
-              <TableCell></TableCell>
-              <TableCell></TableCell>
-              <TableCell>Starting Amount</TableCell>
-              <TableCell>{formatCurrencyFromAmount(budgetObj.amount)}</TableCell>
-              <TableCell>{formatCurrencyFromAmount(budgetObj.amount)}</TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-          )}
-          {costList.map((cost: Cost, index: number) => (
-            <TableRow key={cost.id}>
-              <TableCell>{formatDateNumbered(cost.createdAt)}</TableCell>
-              <TableCell>
-                {cost.vendor && cost.vendor.name ? cost.vendor.name : "N/A"}
-              </TableCell>
-              <TableCell>
-                {cost.payment_method && cost.payment_method.name
-                  ? cost.payment_method.name
-                  : "N/A"}
-              </TableCell>
-              <TableCell>{cost.description}</TableCell>
-              <TableCell>{formatCurrencyFromCost(cost)}</TableCell>
-              {isRunning && (
-                <TableCell>
-                  {formatCurrencyFromAmount(runningTotals[index])}
-                </TableCell>
-              )}
-              <TableCell>
-                <ButtonGroup>
-                  <IconButton
-                    onClick={() =>
-                      navigate(`/budgets/${budgetID}/costs/${cost.id}/edit`)
-                    }
-                  >
-                    <Edit />
-                  </IconButton>
-                  <IconButton
-                    onClick={(event) => handleDeleteCost(event, cost.id)}
-                  >
-                    <Clear />
-                  </IconButton>
-                </ButtonGroup>
-              </TableCell>
-            </TableRow>
-          ))}
-          {!isRunning && (
-            <TableRow key="total">
-              <TableCell></TableCell>
-              <TableCell></TableCell>
-              <TableCell></TableCell>
-              <TableCell>Total</TableCell>
-              <TableCell>
-                {formatCurrencyFromAmount(budgetCalculations.costTotal)}
-              </TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-
-      <Button
-        variant="contained"
-        component="a"
-        href={`/budgets/${budgetID}/costs/new`}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: 1.5,
+        }}
       >
-        Add Cost
-      </Button>
+        <Typography variant="h6" component="h2">
+          Costs
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => navigate(`/budgets/${budgetID}/costs/new`)}
+        >
+          Add Cost
+        </Button>
+      </Box>
+
+      <TableContainer component={Paper} variant="outlined">
+        <Table aria-label="budget table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Date</TableCell>
+              <TableCell>Vendor</TableCell>
+              <TableCell>Payment Method</TableCell>
+              <TableCell>Cost</TableCell>
+              <TableCell>Amount</TableCell>
+              {isRunning && <TableCell>Running Total</TableCell>}
+              <TableCell></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {isRunning && (
+              <TableRow key="starting-amount" hover>
+                <TableCell>{formatDateNumbered(budgetObj.createdAt)}</TableCell>
+                <TableCell></TableCell>
+                <TableCell></TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Starting Amount</TableCell>
+                <TableCell>{formatCurrencyFromAmount(budgetObj.amount)}</TableCell>
+                <TableCell>{formatCurrencyFromAmount(budgetObj.amount)}</TableCell>
+                <TableCell></TableCell>
+              </TableRow>
+            )}
+            {costList.map((cost: Cost, index: number) => (
+              <TableRow key={cost.id} hover>
+                <TableCell>{formatDateNumbered(cost.createdAt)}</TableCell>
+                <TableCell>
+                  {cost.vendor && cost.vendor.name ? cost.vendor.name : "N/A"}
+                </TableCell>
+                <TableCell>
+                  {cost.payment_method && cost.payment_method.name
+                    ? cost.payment_method.name
+                    : "N/A"}
+                </TableCell>
+                <TableCell>{cost.description}</TableCell>
+                <TableCell
+                  sx={{
+                    color:
+                      cost.type === CostTypes.expense
+                        ? "error.main"
+                        : "success.main",
+                  }}
+                >
+                  {formatCurrencyFromCost(cost)}
+                </TableCell>
+                {isRunning && (
+                  <TableCell>
+                    {formatCurrencyFromAmount(runningTotals[index])}
+                  </TableCell>
+                )}
+                <TableCell>
+                  <ButtonGroup>
+                    <IconButton
+                      color="primary"
+                      onClick={() =>
+                        navigate(`/budgets/${budgetID}/costs/${cost.id}/edit`)
+                      }
+                    >
+                      <Edit />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={(event) => handleDeleteCost(event, cost.id)}
+                    >
+                      <Clear />
+                    </IconButton>
+                  </ButtonGroup>
+                </TableCell>
+              </TableRow>
+            ))}
+            {!isRunning && (
+              <TableRow key="total">
+                <TableCell></TableCell>
+                <TableCell></TableCell>
+                <TableCell></TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Total</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>
+                  {formatCurrencyFromAmount(budgetCalculations.costTotal)}
+                </TableCell>
+                <TableCell></TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </>
   );
 }

@@ -6,12 +6,12 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuIcon from "@mui/icons-material/Menu";
+import SettingsIcon from "@mui/icons-material/Settings";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import Container from "@mui/material/Container";
-import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
-import AdbIcon from "@mui/icons-material/Adb";
 import { type PageLink } from "../utils/dataTypes";
 
 const pages: PageLink[] = [
@@ -24,7 +24,7 @@ const pages: PageLink[] = [
     path: "/budgets/new",
   },
 ];
-const settings = [
+const settings: PageLink[] = [
   {
     name: "Vendors",
     path: "/vendors",
@@ -38,6 +38,10 @@ const settings = [
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+
+  // Links are full page loads, so the current path is accurate on each render
+  const currentPath = window.location.pathname.replace(/\/$/, "") || "/";
+  const isCurrent = (path: string): boolean => currentPath === path;
 
   const handleOpenNavMenu = (event: MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -55,34 +59,33 @@ function ResponsiveAppBar() {
   };
 
   return (
-    <AppBar position="static">
-      <Container maxWidth="xl">
+    <AppBar position="static" color="primary">
+      <Container maxWidth="lg">
         <Toolbar disableGutters>
-          {/* DESKTOP NAVBAR LAYOUT */}
-
-          {/* <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} /> */}
-          <Typography
-            variant="h6"
-            noWrap
+          {/* BRAND */}
+          <Box
             component="a"
             href="/"
             sx={{
-              mr: 2,
-              display: { xs: "none", md: "flex" },
-              fontFamily: "monospace",
-              fontWeight: 700,
-              // letterSpacing: '.3rem',
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              mr: 3,
               color: "inherit",
               textDecoration: "none",
             }}
           >
-            Budget Tracker
-          </Typography>
+            <AccountBalanceWalletIcon />
+            <Typography variant="h6" component="span" noWrap>
+              Budget Tracker
+            </Typography>
+          </Box>
 
+          {/* MOBILE NAV MENU */}
           <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
             <IconButton
               size="large"
-              aria-label="account of current user"
+              aria-label="open navigation menu"
               aria-controls="menu-appbar"
               aria-haspopup="true"
               onClick={handleOpenNavMenu}
@@ -106,13 +109,12 @@ function ResponsiveAppBar() {
               onClose={handleCloseNavMenu}
               sx={{ display: { xs: "block", md: "none" } }}
             >
-              {/* PAGE LINKS - DESKTOP */}
-
               {pages.map((page: PageLink) => (
                 <MenuItem
                   key={page.name}
                   component="a"
                   href={page.path}
+                  selected={isCurrent(page.path)}
                   onClick={handleCloseNavMenu}
                 >
                   <Typography sx={{ textAlign: "center" }}>
@@ -121,54 +123,41 @@ function ResponsiveAppBar() {
                 </MenuItem>
               ))}
             </Menu>
-
-            {/* MOBILE NAVBAR LAYOUT */}
           </Box>
-          {/* <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} /> */}
-          <Typography
-            variant="h5"
-            noWrap
-            component="a"
-            href="/"
-            sx={{
-              mr: 2,
-              display: { xs: "flex", md: "none" },
-              flexGrow: 1,
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
-            }}
-          >
-            BUDGET TRACKER
-          </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-            {/* PAGE LINKS - MOBILE */}
 
+          {/* DESKTOP NAV LINKS */}
+          <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" }, gap: 1 }}>
             {pages.map((page: PageLink) => (
               <Button
                 key={page.name}
                 href={page.path}
-                onClick={handleCloseNavMenu}
-                sx={{ my: 2, color: "white", display: "block" }}
+                color="inherit"
+                sx={{
+                  bgcolor: isCurrent(page.path)
+                    ? "rgba(255, 255, 255, 0.18)"
+                    : "transparent",
+                  "&:hover": { bgcolor: "rgba(255, 255, 255, 0.28)" },
+                }}
               >
                 {page.name}
               </Button>
             ))}
           </Box>
 
-          {/* AVATAR BOX */}
-
+          {/* SETTINGS MENU */}
           <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+            <Tooltip title="Vendors and payment methods">
+              <IconButton
+                onClick={handleOpenUserMenu}
+                color="inherit"
+                aria-label="open settings menu"
+              >
+                <SettingsIcon />
               </IconButton>
             </Tooltip>
             <Menu
               sx={{ mt: "45px" }}
-              id="menu-appbar"
+              id="menu-settings"
               anchorEl={anchorElUser}
               anchorOrigin={{
                 vertical: "top",
@@ -182,13 +171,12 @@ function ResponsiveAppBar() {
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
-              {/* AVATAR DROPDOWN LINKS */}
-
-              {settings.map((setting) => (
+              {settings.map((setting: PageLink) => (
                 <MenuItem
                   key={setting.name}
                   component="a"
                   href={setting.path}
+                  selected={isCurrent(setting.path)}
                   onClick={handleCloseUserMenu}
                 >
                   <Typography sx={{ textAlign: "center" }}>

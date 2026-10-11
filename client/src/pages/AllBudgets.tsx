@@ -2,6 +2,7 @@ import { useState, useEffect, type MouseEvent } from "react";
 import { useNavigate } from "react-router";
 import {
   Table,
+  TableContainer,
   TableHead,
   TableBody,
   TableRow,
@@ -9,11 +10,13 @@ import {
   Button,
   IconButton,
   ButtonGroup,
+  Paper,
 } from "@mui/material";
+import PageHeader from "../components/PageHeader.tsx";
 import { api } from "../utils/api.tsx";
 import type { Budget } from "../utils/dataTypes.tsx";
 import { formatCurrencyFromAmount, formatDateNumbered } from "../utils/tools.tsx";
-import { Edit, Clear } from "@mui/icons-material";
+import { Edit, Clear, Add } from "@mui/icons-material";
 
 function ShowBudgetPage() {
   const navigate = useNavigate();
@@ -59,50 +62,66 @@ function ShowBudgetPage() {
 
   return (
     <>
-      <h1>Budget Tracker</h1>
-      <Table sx={{ minWidth: 650 }} aria-label="budget table">
-        <TableHead>
-          <TableRow>
-            <TableCell>Budget</TableCell>
-            <TableCell>Amount</TableCell>
-            <TableCell>Expires</TableCell>
-            <TableCell></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {budgetList.map((budget) => (
-            <TableRow key={budget.id}>
-              <TableCell>
-                <Button
-                  variant="contained"
-                  type="button"
-                  onClick={() => handleBudgetNavigate(budget.id)}
-                >
-                  {budget.name}
-                </Button>
-              </TableCell>
-              <TableCell>{formatCurrencyFromAmount(budget.amount)}</TableCell>
-              <TableCell>{formatDateNumbered(budget.expiration)}</TableCell>
-              <TableCell>
-                <ButtonGroup>
-                  <IconButton
-                    onClick={() =>
-                      navigate(`/budgets/${budget.id}/edit`)
-                    }
-                  >
-                    <Edit />
-                  </IconButton>
-                  <IconButton
-                    onClick={(event) => handleDeleteBudget(event, budget.id)}
-                  >
-                    <Clear />
-                  </IconButton>
-                </ButtonGroup>
-              </TableCell>
+      <PageHeader
+        title="Budgets"
+        actions={
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => navigate("/budgets/new")}
+          >
+            New Budget
+          </Button>
+        }
+      />
+      <TableContainer component={Paper} variant="outlined">
+        <Table aria-label="budget table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Budget</TableCell>
+              <TableCell>Amount</TableCell>
+              <TableCell>Expires</TableCell>
+              <TableCell></TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {budgetList.map((budget) => (
+              <TableRow key={budget.id} hover>
+                <TableCell>
+                  <Button
+                    variant="text"
+                    sx={{ fontWeight: 600 }}
+                    type="button"
+                    onClick={() => handleBudgetNavigate(budget.id)}
+                  >
+                    {budget.name}
+                  </Button>
+                </TableCell>
+                <TableCell>{formatCurrencyFromAmount(budget.amount)}</TableCell>
+                <TableCell>{formatDateNumbered(budget.expiration)}</TableCell>
+                <TableCell>
+                  <ButtonGroup>
+                    <IconButton
+                      color="primary"
+                      onClick={() =>
+                        navigate(`/budgets/${budget.id}/edit`)
+                      }
+                    >
+                      <Edit />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={(event) => handleDeleteBudget(event, budget.id)}
+                    >
+                      <Clear />
+                    </IconButton>
+                  </ButtonGroup>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </>
   );
 }

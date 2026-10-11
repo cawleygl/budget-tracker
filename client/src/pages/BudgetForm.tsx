@@ -14,7 +14,10 @@ import {
   IconButton,
   Switch,
   FormControlLabel,
+  Paper,
+  Stack,
 } from "@mui/material";
+import PageHeader from "../components/PageHeader.tsx";
 import { Add } from "@mui/icons-material";
 import NumberField from "../components/NumberField.tsx";
 import { api } from "../utils/api.tsx";
@@ -114,73 +117,79 @@ function BudgetFormPage() {
 
   return (
     <>
-      <h1>{budgetID ? "Edit" : "Add"} Budget</h1>
+      <PageHeader title={`${budgetID ? "Edit" : "Add"} Budget`} />
+      <Paper variant="outlined" sx={{ p: 3, maxWidth: 560 }}>
       <form onSubmit={handleSubmitBudget}>
-        <TextField
-          variant="outlined"
-          label="Name"
-          id="name"
-          name="name"
-          type="text"
-          value={budgetName}
-          onChange={(event) => setBudgetName(event.target.value)}
-          required
-        />
+        <Stack spacing={2.5}>
+          <TextField
+            variant="outlined"
+            label="Name"
+            id="name"
+            name="name"
+            type="text"
+            value={budgetName}
+            onChange={(event) => setBudgetName(event.target.value)}
+            required
+          />
 
-        <NumberField
-          label={isRepeating ? "Amount" : "Starting Amount"}
-          id="amount"
-          name="amount"
-          min={0}
-          step={0.01}
-          value={budgetAmount}
-          onValueChange={(value) => setBudgetAmount(value ?? 0)}
-          required
-        />
+          <NumberField
+            label={isRepeating ? "Amount" : "Starting Amount"}
+            id="amount"
+            name="amount"
+            min={0}
+            step={0.01}
+            value={budgetAmount}
+            onValueChange={(value) => setBudgetAmount(value ?? 0)}
+            required
+          />
 
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isRepeating}
-              onChange={(event) => setIsRepeating(event.target.checked)}
-            />
-          }
-          label={isRepeating ? "Repeating" : "Running"}
-        />
-
-        {isRepeating && (
-          <>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                label="Start"
-                name="start"
-                value={budgetStart}
-                maxDate={budgetExpiration ?? undefined}
-                onChange={(date) => setBudgetStart(date ?? null)}
-                slotProps={{
-                  textField: { required: true },
-                }}
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isRepeating}
+                onChange={(event) => setIsRepeating(event.target.checked)}
               />
-            </LocalizationProvider>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                label="Expiration"
-                name="expiration"
-                value={budgetExpiration}
-                minDate={budgetStart ?? undefined}
-                onChange={(date) => setBudgetExpiration(date ?? null)}
-                slotProps={{
-                  textField: { required: true },
-                }}
-              />
-            </LocalizationProvider>
-          </>
-        )}
+            }
+            label={isRepeating ? "Repeating" : "Running"}
+          />
 
-        <Button type="submit" variant="contained">
-          Submit
-        </Button>
+          {isRepeating && (
+            <>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Start"
+                  name="start"
+                  value={budgetStart}
+                  maxDate={budgetExpiration ?? undefined}
+                  onChange={(date) => setBudgetStart(date ?? null)}
+                  slotProps={{
+                    textField: { required: true, fullWidth: true },
+                  }}
+                />
+              </LocalizationProvider>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Expiration"
+                  name="expiration"
+                  value={budgetExpiration}
+                  minDate={budgetStart ?? undefined}
+                  onChange={(date) => setBudgetExpiration(date ?? null)}
+                  slotProps={{
+                    textField: { required: true, fullWidth: true },
+                  }}
+                />
+              </LocalizationProvider>
+            </>
+          )}
+
+          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+            <Button type="submit" variant="contained">
+              Submit
+            </Button>
+          </Box>
+        </Stack>
       </form>
+      </Paper>
     </>
   );
 }
