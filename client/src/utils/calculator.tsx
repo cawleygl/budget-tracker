@@ -3,6 +3,7 @@ import type {
   BudgetCalculations,
   Budget,
   BudgetStatus,
+  CostType,
 } from "./dataTypes.tsx";
 import { BudgetStatuses, CostTypes } from "./dataTypes.tsx";
 import { regulateDate } from "../utils/tools.tsx";
@@ -25,6 +26,10 @@ export function calculateBudget(
 
   const status: string = calculateStatus(expiration, start, today);
   const costTotal = sumCosts(budgetObj.costs);
+  const expenseTotal = sumExpenses(budgetObj.costs);
+  const creditTotal = sumCredits(budgetObj.costs);
+  // Length of the budget period is known even once the budget has expired
+  const totalDays = calculateTotalDays(start, expiration);
   const amountRemaining = calculateAmountRemaining(budgetObj.amount, costTotal);
 
   // Without both a start and an expiration, per-day pacing can't be calculated
@@ -36,11 +41,13 @@ export function calculateBudget(
     return {
       status,
       costTotal,
+      expenseTotal,
+      creditTotal,
       amountRemaining,
       expectedCostToDate: 0,
       remainingBudgetPerDay: 0,
       expectedRemainingBudget: 0,
-      totalDays: 0,
+      totalDays,
       daysElapsed: 0,
     } as BudgetCalculations;
   }
@@ -63,14 +70,34 @@ export function calculateBudget(
 
   return {
     costTotal,
+    expenseTotal,
+    creditTotal,
     status,
     amountRemaining,
     expectedCostToDate,
     remainingBudgetPerDay,
     expectedRemainingBudget,
-    totalDays: getDateDifference(expiration, start),
+    totalDays,
     daysElapsed: getDateDifference(today, start),
   } as BudgetCalculations;
+}
+
+/**
+ * Calculate the total number of days in a budget's period
+ *
+ * @param start - Budget start date, or null if there isn't one
+ * @param expiration - Budget expiration date, or null if there isn't one
+ * @return - number of days from start to expiration (0 if either date is missing)
+ */
+export function calculateTotalDays(
+  start: Date | null,
+  expiration: Date | null,
+): number {
+  if (start === null || expiration === null) {
+    return 0;
+  }
+
+  return getDateDifference(expiration, start);
 }
 
 /**
@@ -139,6 +166,39 @@ function sumCosts(costList: Cost[]): number {
     (acc: number, cost: Cost) => acc + signedCostAmount(cost),
     0,
   );
+}
+
+/**
+ * Sum the amounts of all costs of a given type
+ *
+ * @param costList - List of costs
+ * @param type - Cost type to sum
+ * @return - sum of the (positive) amounts
+ */
+function sumCostsOfType(costList: Cost[], type: CostType): number {
+  return costList
+    .filter((cost: Cost) => cost.type === type)
+    .reduce((acc: number, cost: Cost) => acc + Number(cost.amount), 0);
+}
+
+/**
+ * Sum all expenses in a costList array
+ *
+ * @param costList - List of costs
+ * @return - total of expenses as a positive number
+ */
+export function sumExpenses(costList: Cost[]): number {
+  return sumCostsOfType(costList, CostTypes.expense);
+}
+
+/**
+ * Sum all credits in a costList array
+ *
+ * @param costList - List of costs
+ * @return - total of credits as a positive number
+ */
+export function sumCredits(costList: Cost[]): number {
+  return sumCostsOfType(costList, CostTypes.credit);
 }
 
 /**

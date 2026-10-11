@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Box, LinearProgress, Paper, Typography } from "@mui/material";
 import { BudgetStatuses } from "../utils/dataTypes.tsx";
 import type { BudgetCalculations } from "../utils/dataTypes.tsx";
@@ -11,6 +12,8 @@ interface RepeatingBudgetVisualsProps {
   start: Date | null;
   expiration: Date | null;
   calculations: BudgetCalculations;
+  // Buttons shown in the expired budget breakdown (e.g. Reset Budget)
+  expiredActions?: ReactNode;
 }
 
 const clampPercent = (value: number): number =>
@@ -171,20 +174,44 @@ function StatTile({
   );
 }
 
+function SummaryTile({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string;
+  color?: string;
+}) {
+  return (
+    <Paper variant="outlined" sx={{ p: 1.5, minWidth: 160, flex: "1 1 160px" }}>
+      <Typography variant="caption" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography variant="h6" sx={{ color }}>
+        {value}
+      </Typography>
+    </Paper>
+  );
+}
+
 /**
  * Summary of a repeating budget:
- *  - Amount remaining / budget total and the date range
+ *  - Amount spent / budget total and the date range
  *
  * While the budget is active (and has both dates), also:
  *  - Spending progress bar with a marker for where spending should be today
- *  - Time progress bar for how far through the budget period we are
- *  - Stat tiles for the key calculated values
+ *  - Stat tiles comparing expected and actual values
+ *
+ * Once the budget has expired, a full breakdown of the finished budget
+ * (and any expiredActions, such as a Reset Budget button) is shown instead.
  */
 function RepeatingBudgetVisuals({
   budgetAmount,
   start,
   expiration,
   calculations,
+  expiredActions,
 }: RepeatingBudgetVisualsProps) {
   const amount = Number(budgetAmount);
 
@@ -258,11 +285,75 @@ function RepeatingBudgetVisuals({
   );
 
   // e.g. "$120.00 of $500.00 - $380.00 remaining"
+  const isExpired = calculations.status === BudgetStatuses.expired;
   const spendSummary = `${formatCurrencyFromAmount(spent)} of ${formatCurrencyFromAmount(amount)} - ${formatCurrencyFromAmount(calculations.amountRemaining)} remaining`;
 
   // Pacing visuals need an active budget with both dates set
   const showPacing =
     calculations.status === BudgetStatuses.active && !!start && !!expiration;
+
+  // Breakdown of a finished budget
+  const { expenseTotal, creditTotal } = calculations;
+  const netSpent = expenseTotal - creditTotal;
+  const overBudgetBy = Math.max(0, netSpent - amount);
+  const averagePerDay =
+    calculations.totalDays > 0 ? spent / calculations.totalDays : 0;
+
+  if (isExpired) {
+    return (
+      <Paper variant="outlined" sx={{ p: 3, my: 2, maxWidth: 800 }}>
+        <MarkedProgress
+          label="Final Spending"
+          caption={`${Math.round(spentPercent)}% of budget used`}
+          percent={spentPercent}
+          startLabel={formatDateWritten(start)}
+          endLabel={formatDateWritten(expiration)}
+          color={isOverBudget ? "error" : "success"}
+        />
+
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
+          <SummaryTile label="Budget" value={formatCurrencyFromAmount(amount)} />
+          <SummaryTile
+            label="Expenses"
+            value={formatCurrencyFromAmount(-expenseTotal)}
+            color="error.main"
+          />
+          <SummaryTile
+            label="Credits"
+            value={formatCurrencyFromAmount(creditTotal)}
+            color="success.main"
+          />
+          <SummaryTile
+            label="Net Spent"
+            value={formatCurrencyFromAmount(netSpent)}
+          />
+          {isOverBudget ? (
+            <SummaryTile
+              label="Over Budget By"
+              value={formatCurrencyFromAmount(overBudgetBy)}
+              color="error.main"
+            />
+          ) : (
+            <SummaryTile
+              label="Left Over"
+              value={formatCurrencyFromAmount(calculations.amountRemaining)}
+              color="success.main"
+            />
+          )}
+          <SummaryTile
+            label="Average Spent Per Day"
+            value={formatCurrencyFromAmount(averagePerDay)}
+          />
+          <SummaryTile
+            label="Length"
+            value={`${Math.round(calculations.totalDays)} days`}
+          />
+        </Box>
+
+        {expiredActions && <Box sx={{ mt: 3 }}>{expiredActions}</Box>}
+      </Paper>
+    );
+  }
 
   return (
     <Box sx={{ my: 2, maxWidth: 800 }}>

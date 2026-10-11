@@ -62,6 +62,8 @@ function ShowBudgetPage() {
     useState<BudgetCalculations>({
       status: BudgetStatuses.not_started,
       costTotal: 0,
+      expenseTotal: 0,
+      creditTotal: 0,
       amountRemaining: 0,
       expectedCostToDate: 0,
       remainingBudgetPerDay: 0,
@@ -195,12 +197,8 @@ function ShowBudgetPage() {
             start={budgetObj.start}
             expiration={budgetObj.expiration}
             calculations={budgetCalculations}
+            expiredActions={<Button variant="contained">Reset Budget</Button>}
           />
-          {budgetCalculations.status === BudgetStatuses.expired && (
-            <Button variant="contained" sx={{ mb: 3 }}>
-              Reset Budget
-            </Button>
-          )}
           {budgetCalculations.status === BudgetStatuses.not_started && (
             <Button variant="contained" sx={{ mb: 3 }}>
               Start Budget

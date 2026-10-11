@@ -72,6 +72,8 @@ export interface IdResponsePayload {
 export interface BudgetCalculations {
 	status: BudgetStatus
   costTotal: number;
+  expenseTotal: number;
+  creditTotal: number;
   amountRemaining: number;
   expectedCostToDate: number;
   remainingBudgetPerDay: number;
