@@ -40,6 +40,8 @@ export function calculateBudget(
       expectedCostToDate: 0,
       remainingBudgetPerDay: 0,
       expectedRemainingBudget: 0,
+      totalDays: 0,
+      daysElapsed: 0,
     } as BudgetCalculations;
   }
 
@@ -66,6 +68,8 @@ export function calculateBudget(
     expectedCostToDate,
     remainingBudgetPerDay,
     expectedRemainingBudget,
+    totalDays: getDateDifference(expiration, start),
+    daysElapsed: getDateDifference(today, start),
   } as BudgetCalculations;
 }
 
@@ -131,10 +135,42 @@ function sumCosts(costList: Cost[]): number {
     return 0;
   }
 
-  return costList.reduce((acc: number, cost: Cost) => {
-    const amount = Number(cost.amount);
-    return cost.type === CostTypes.credit ? acc + amount : acc - amount;
-  }, 0);
+  return costList.reduce(
+    (acc: number, cost: Cost) => acc + signedCostAmount(cost),
+    0,
+  );
+}
+
+/**
+ * Signed amount of a cost: credits are positive, expenses are negative
+ *
+ * @param cost - Cost
+ * @return - signed amount
+ */
+function signedCostAmount(cost: Cost): number {
+  const amount = Number(cost.amount);
+  return cost.type === CostTypes.credit ? amount : -amount;
+}
+
+/**
+ * Calculate the running total after each cost, for running budgets
+ *
+ * Starts at the starting amount, adds credits and subtracts expenses.
+ * Costs should already be in display (chronological) order.
+ *
+ * @param startingAmount - Budget amount the running total begins with
+ * @param costList - List of costs in display order
+ * @return - running total after each cost, same order/length as costList
+ */
+export function calculateRunningTotals(
+  startingAmount: number,
+  costList: Cost[],
+): number[] {
+  let total = Number(startingAmount);
+  return costList.map((cost: Cost) => {
+    total += signedCostAmount(cost);
+    return total;
+  });
 }
 
 /**

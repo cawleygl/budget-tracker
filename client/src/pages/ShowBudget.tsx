@@ -11,15 +11,18 @@ import {
   IconButton,
   ButtonGroup,
 } from "@mui/material";
+import RepeatingBudgetVisuals from "../components/RepeatingBudgetVisuals.tsx";
 import { api } from "../utils/api.tsx";
 import {
   formatCurrencyFromAmount,
   formatCurrencyFromCost,
   formatBudgetStatus,
   formatDateNumbered,
-  formatDateWritten,
 } from "../utils/tools.tsx";
-import { calculateBudget } from "../utils/calculator.tsx";
+import {
+  calculateBudget,
+  calculateRunningTotals,
+} from "../utils/calculator.tsx";
 import {
   type Budget,
   type Cost,
@@ -57,6 +60,8 @@ function ShowBudgetPage() {
       expectedCostToDate: 0,
       remainingBudgetPerDay: 0,
       expectedRemainingBudget: 0,
+      totalDays: 0,
+      daysElapsed: 0,
     });
 
   useEffect(() => {
@@ -123,62 +128,64 @@ function ShowBudgetPage() {
   // Hide the page until the budget has loaded
   if (budgetType === "loading") return null;
 
+  const isRunning = budgetType === "running";
+  const runningTotals: number[] = isRunning
+    ? calculateRunningTotals(budgetObj.amount, costList)
+    : [];
+  const currentBalance: number =
+    runningTotals.length > 0
+      ? runningTotals[runningTotals.length - 1]
+      : Number(budgetObj.amount);
+
   return (
     <>
-      <h1>
-        {budgetObj.name} - {formatBudgetStatus(budgetCalculations.status)}
-        <IconButton
-          onClick={() => navigate(`/budgets/${budgetID}/edit`)}
-        >
-          <Edit />
-        </IconButton>
-      </h1>
-      <p>
-        {formatCurrencyFromAmount(budgetCalculations.amountRemaining)} /{" "}
-        {formatCurrencyFromAmount(budgetObj.amount)}
-      </p>
-      <p>Type (test): {budgetType === "repeating" ? "Repeating" : "Running"}</p>
-      <p>
-        {formatDateWritten(budgetObj.start)} -{" "}
-        {formatDateWritten(budgetObj.expiration)}
-      </p>
-      {budgetCalculations.status === BudgetStatuses.active &&
-      budgetObj.start &&
-      budgetObj.expiration ? (
+      {isRunning ? (
         <>
-          <p>
-            Expected Cost to Date:{" "}
-            {formatCurrencyFromAmount(budgetCalculations.expectedCostToDate)}
-          </p>
-          <p>
-            Remaining Budget Per Day:{" "}
-            {formatCurrencyFromAmount(budgetCalculations.remainingBudgetPerDay)}
-          </p>
-          <p>
-            Expected Remaining Budget:{" "}
-            {formatCurrencyFromAmount(budgetCalculations.expectedRemainingBudget)}
-          </p>
+          <h1>
+            {budgetObj.name}
+            <IconButton
+              onClick={() => navigate(`/budgets/${budgetID}/edit`)}
+            >
+              <Edit />
+            </IconButton>
+          </h1>
+          <p>Current Balance: {formatCurrencyFromAmount(currentBalance)}</p>
         </>
       ) : (
-        <></>
-      )}
-      {budgetCalculations.status === BudgetStatuses.expired ? (
         <>
-          <p>
-            <Button variant="contained">Reset Budget</Button>
-          </p>
+          <h1>
+            {budgetObj.name} - {formatBudgetStatus(budgetCalculations.status)}
+            <IconButton
+              onClick={() => navigate(`/budgets/${budgetID}/edit`)}
+            >
+              <Edit />
+            </IconButton>
+          </h1>
+          <RepeatingBudgetVisuals
+            budgetAmount={budgetObj.amount}
+            start={budgetObj.start}
+            expiration={budgetObj.expiration}
+            calculations={budgetCalculations}
+          />
+          {budgetCalculations.status === BudgetStatuses.expired ? (
+            <>
+              <p>
+                <Button variant="contained">Reset Budget</Button>
+              </p>
+            </>
+          ) : (
+            <></>
+          )}
+          {budgetCalculations.status === BudgetStatuses.not_started ? (
+            <>
+              <p>
+                <Button variant="contained">Start Budget</Button>
+              </p>
+            </>
+          ) : (
+            <></>
+          )}
         </>
-      ) : (
-        <></>
-      )}
-      {budgetCalculations.status === BudgetStatuses.not_started ? (
-        <>
-          <p>
-            <Button variant="contained">Start Budget</Button>
-          </p>
-        </>
-      ) : (
-        <></>
       )}
 
       <Table sx={{ minWidth: 650 }} aria-label="budget table">
@@ -189,21 +196,23 @@ function ShowBudgetPage() {
             <TableCell>Payment Method</TableCell>
             <TableCell>Cost</TableCell>
             <TableCell>Amount</TableCell>
+            {isRunning && <TableCell>Running Total</TableCell>}
             <TableCell></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {budgetType === "running" && (
+          {isRunning && (
             <TableRow key="starting-amount">
               <TableCell>{formatDateNumbered(budgetObj.createdAt)}</TableCell>
               <TableCell></TableCell>
               <TableCell></TableCell>
               <TableCell>Starting Amount</TableCell>
               <TableCell>{formatCurrencyFromAmount(budgetObj.amount)}</TableCell>
+              <TableCell>{formatCurrencyFromAmount(budgetObj.amount)}</TableCell>
               <TableCell></TableCell>
             </TableRow>
           )}
-          {costList.map((cost: Cost) => (
+          {costList.map((cost: Cost, index: number) => (
             <TableRow key={cost.id}>
               <TableCell>{formatDateNumbered(cost.createdAt)}</TableCell>
               <TableCell>
@@ -216,6 +225,11 @@ function ShowBudgetPage() {
               </TableCell>
               <TableCell>{cost.description}</TableCell>
               <TableCell>{formatCurrencyFromCost(cost)}</TableCell>
+              {isRunning && (
+                <TableCell>
+                  {formatCurrencyFromAmount(runningTotals[index])}
+                </TableCell>
+              )}
               <TableCell>
                 <ButtonGroup>
                   <IconButton
@@ -234,16 +248,18 @@ function ShowBudgetPage() {
               </TableCell>
             </TableRow>
           ))}
-          <TableRow key="total">
-            <TableCell></TableCell>
-            <TableCell></TableCell>
-            <TableCell></TableCell>
-            <TableCell>Total</TableCell>
-            <TableCell>
-              {formatCurrencyFromAmount(budgetCalculations.costTotal)}
-            </TableCell>
-            <TableCell></TableCell>
-          </TableRow>
+          {!isRunning && (
+            <TableRow key="total">
+              <TableCell></TableCell>
+              <TableCell></TableCell>
+              <TableCell></TableCell>
+              <TableCell>Total</TableCell>
+              <TableCell>
+                {formatCurrencyFromAmount(budgetCalculations.costTotal)}
+              </TableCell>
+              <TableCell></TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
 

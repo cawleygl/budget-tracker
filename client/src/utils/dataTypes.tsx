@@ -76,6 +76,8 @@ export interface BudgetCalculations {
   expectedCostToDate: number;
   remainingBudgetPerDay: number;
   expectedRemainingBudget: number;
+  totalDays: number;
+  daysElapsed: number;
 }
 
 export const BudgetStatuses = {
