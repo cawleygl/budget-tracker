@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 
 import {
   type BudgetStatus,
+  type Cost,
   BudgetStatuses,
   FormattedBudgetStatuses,
   type CostType,
@@ -10,15 +11,24 @@ import {
 } from "./dataTypes";
 
 // Format currency values in frontend
-export function formatCurrency(amount: number): string {
-  console.log(Number(parseFloat(amount.toString()).toFixed(2)));
+// Negative values render with the sign outside the dollar sign: -$12.50
+export function formatCurrencyFromAmount(amount: number): string {
+  const rounded = Number(Number(amount).toFixed(2));
+  const sign = rounded < 0 ? "-" : "";
   return (
+    sign +
     "$" +
-    Number(amount).toLocaleString("en-US", {
+    Math.abs(rounded).toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })
   );
+}
+
+// Format a cost's amount for display; expenses are shown as negative
+export function formatCurrencyFromCost(cost: Cost): string {
+  const amount = Math.abs(Number(cost.amount));
+  return formatCurrencyFromAmount(cost.type === CostTypes.expense ? -amount : amount);
 }
 
 // Format budget status to values in frontend

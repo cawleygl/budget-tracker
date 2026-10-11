@@ -13,9 +13,9 @@ import {
 } from "@mui/material";
 import { api } from "../utils/api.tsx";
 import {
-  formatCurrency,
+  formatCurrencyFromAmount,
+  formatCurrencyFromCost,
   formatBudgetStatus,
-  formatCostType,
   formatDateNumbered,
   formatDateWritten,
 } from "../utils/tools.tsx";
@@ -41,6 +41,12 @@ function ShowBudgetPage() {
     amount: 0,
   } as Budget);
 
+  // Repeating budgets have a start or expiration; running budgets have neither.
+  // "loading" until the budget has been fetched.
+  const [budgetType, setBudgetType] = useState<
+    "loading" | "running" | "repeating"
+  >("loading");
+
   const [costList, setCostList] = useState<Cost[]>([]);
 
   const [budgetCalculations, setBudgetCalculations] =
@@ -62,6 +68,11 @@ function ShowBudgetPage() {
       try {
         const fetchedBudget: Budget = await api.getBudgetById(budgetID);
         setBudgetObj(fetchedBudget as Budget);
+        setBudgetType(
+          fetchedBudget.start || fetchedBudget.expiration
+            ? "repeating"
+            : "running",
+        );
 
         // Sort costs by createdAt date
         fetchedBudget.costs.sort(
@@ -109,6 +120,9 @@ function ShowBudgetPage() {
     }
   };
 
+  // Hide the page until the budget has loaded
+  if (budgetType === "loading") return null;
+
   return (
     <>
       <h1>
@@ -120,9 +134,10 @@ function ShowBudgetPage() {
         </IconButton>
       </h1>
       <p>
-        {formatCurrency(budgetCalculations.amountRemaining)} /{" "}
-        {formatCurrency(budgetObj.amount)}
+        {formatCurrencyFromAmount(budgetCalculations.amountRemaining)} /{" "}
+        {formatCurrencyFromAmount(budgetObj.amount)}
       </p>
+      <p>Type (test): {budgetType === "repeating" ? "Repeating" : "Running"}</p>
       <p>
         {formatDateWritten(budgetObj.start)} -{" "}
         {formatDateWritten(budgetObj.expiration)}
@@ -133,15 +148,15 @@ function ShowBudgetPage() {
         <>
           <p>
             Expected Cost to Date:{" "}
-            {formatCurrency(budgetCalculations.expectedCostToDate)}
+            {formatCurrencyFromAmount(budgetCalculations.expectedCostToDate)}
           </p>
           <p>
             Remaining Budget Per Day:{" "}
-            {formatCurrency(budgetCalculations.remainingBudgetPerDay)}
+            {formatCurrencyFromAmount(budgetCalculations.remainingBudgetPerDay)}
           </p>
           <p>
             Expected Remaining Budget:{" "}
-            {formatCurrency(budgetCalculations.expectedRemainingBudget)}
+            {formatCurrencyFromAmount(budgetCalculations.expectedRemainingBudget)}
           </p>
         </>
       ) : (
@@ -173,12 +188,21 @@ function ShowBudgetPage() {
             <TableCell>Vendor</TableCell>
             <TableCell>Payment Method</TableCell>
             <TableCell>Cost</TableCell>
-            <TableCell>Type</TableCell>
             <TableCell>Amount</TableCell>
             <TableCell></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
+          {budgetType === "running" && (
+            <TableRow key="starting-amount">
+              <TableCell>{formatDateNumbered(budgetObj.createdAt)}</TableCell>
+              <TableCell></TableCell>
+              <TableCell></TableCell>
+              <TableCell>Starting Amount</TableCell>
+              <TableCell>{formatCurrencyFromAmount(budgetObj.amount)}</TableCell>
+              <TableCell></TableCell>
+            </TableRow>
+          )}
           {costList.map((cost: Cost) => (
             <TableRow key={cost.id}>
               <TableCell>{formatDateNumbered(cost.createdAt)}</TableCell>
@@ -191,8 +215,7 @@ function ShowBudgetPage() {
                   : "N/A"}
               </TableCell>
               <TableCell>{cost.description}</TableCell>
-              <TableCell>{formatCostType(cost.type)}</TableCell>
-              <TableCell>{formatCurrency(cost.amount)}</TableCell>
+              <TableCell>{formatCurrencyFromCost(cost)}</TableCell>
               <TableCell>
                 <ButtonGroup>
                   <IconButton
@@ -216,9 +239,8 @@ function ShowBudgetPage() {
             <TableCell></TableCell>
             <TableCell></TableCell>
             <TableCell>Total</TableCell>
-            <TableCell></TableCell>
             <TableCell>
-              {formatCurrency(budgetCalculations.costTotal)}
+              {formatCurrencyFromAmount(budgetCalculations.costTotal)}
             </TableCell>
             <TableCell></TableCell>
           </TableRow>

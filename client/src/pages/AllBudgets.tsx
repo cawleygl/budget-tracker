@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { api } from "../utils/api.tsx";
 import type { Budget } from "../utils/dataTypes.tsx";
-import { formatCurrency, formatDateNumbered } from "../utils/tools.tsx";
+import { formatCurrencyFromAmount, formatDateNumbered } from "../utils/tools.tsx";
 import { Edit, Clear } from "@mui/icons-material";
 
 function ShowBudgetPage() {
@@ -81,7 +81,7 @@ function ShowBudgetPage() {
                   {budget.name}
                 </Button>
               </TableCell>
-              <TableCell>{formatCurrency(budget.amount)}</TableCell>
+              <TableCell>{formatCurrencyFromAmount(budget.amount)}</TableCell>
               <TableCell>{formatDateNumbered(budget.expiration)}</TableCell>
               <TableCell>
                 <ButtonGroup>
