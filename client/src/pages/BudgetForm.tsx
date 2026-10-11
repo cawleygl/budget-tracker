@@ -18,13 +18,14 @@ import {
   Stack,
 } from "@mui/material";
 import PageHeader from "../components/PageHeader.tsx";
+import BudgetTypeDescription from "../components/BudgetTypeDescription.tsx";
 import { Add } from "@mui/icons-material";
 import NumberField from "../components/NumberField.tsx";
 import { api } from "../utils/api.tsx";
 import {
   type Budget,
-  type Cost,
   type BudgetPrefill,
+  type Cost,
   type Vendor,
   type PaymentMethod,
   type PostCostPayload,
@@ -42,9 +43,9 @@ function BudgetFormPage() {
     const params = useParams();
   const navigate = useNavigate();
 
-  const [budgetID] = useState<string>(params.budgetId || "");
   const location = useLocation();
 
+  const [budgetID] = useState<string>(params.budgetId || "");
 
   // Values passed in when creating a budget from an existing one (Reset Budget)
   const [prefill] = useState<BudgetPrefill | null>(
@@ -132,78 +133,85 @@ function BudgetFormPage() {
   return (
     <>
       <PageHeader title={`${budgetID ? "Edit" : "Add"} Budget`} />
-      <Paper variant="outlined" sx={{ p: 3, maxWidth: 560 }}>
-      <form onSubmit={handleSubmitBudget}>
-        <Stack spacing={2.5}>
-          <TextField
-            variant="outlined"
-            label="Name"
-            id="name"
-            name="name"
-            type="text"
-            value={budgetName}
-            onChange={(event) => setBudgetName(event.target.value)}
-            required
-          />
-
-          <NumberField
-            label={isRepeating ? "Amount" : "Starting Amount"}
-            id="amount"
-            name="amount"
-            min={0}
-            step={0.01}
-            value={budgetAmount}
-            onValueChange={(value) => setBudgetAmount(value ?? 0)}
-            required
-          />
-
-          <FormControlLabel
-            control={
-              <Switch
-                checked={isRepeating}
-                onChange={(event) => setIsRepeating(event.target.checked)}
+      <Box
+        sx={{ display: "flex", flexWrap: "wrap", gap: 3, alignItems: "flex-start" }}
+      >
+        <Paper variant="outlined" sx={{ p: 3, flex: "1 1 360px", maxWidth: 560 }}>
+          <form onSubmit={handleSubmitBudget}>
+            <Stack spacing={2.5}>
+              <TextField
+                variant="outlined"
+                label="Name"
+                id="name"
+                name="name"
+                type="text"
+                value={budgetName}
+                onChange={(event) => setBudgetName(event.target.value)}
+                required
               />
-            }
-            label={isRepeating ? "Repeating" : "Running"}
-          />
 
-          {isRepeating && (
-            <>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="Start"
-                  name="start"
-                  value={budgetStart}
-                  maxDate={budgetExpiration ?? undefined}
-                  onChange={(date) => setBudgetStart(date ?? null)}
-                  slotProps={{
-                    textField: { required: true, fullWidth: true },
-                  }}
-                />
-              </LocalizationProvider>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="Expiration"
-                  name="expiration"
-                  value={budgetExpiration}
-                  minDate={budgetStart ?? undefined}
-                  onChange={(date) => setBudgetExpiration(date ?? null)}
-                  slotProps={{
-                    textField: { required: true, fullWidth: true },
-                  }}
-                />
-              </LocalizationProvider>
-            </>
-          )}
+              <NumberField
+                label={isRepeating ? "Amount" : "Starting Amount"}
+                id="amount"
+                name="amount"
+                min={0}
+                step={0.01}
+                value={budgetAmount}
+                onValueChange={(value) => setBudgetAmount(value ?? 0)}
+                required
+              />
 
-          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <Button type="submit" variant="contained">
-              Submit
-            </Button>
-          </Box>
-        </Stack>
-      </form>
-      </Paper>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={isRepeating}
+                    onChange={(event) => setIsRepeating(event.target.checked)}
+                  />
+                }
+                label={isRepeating ? "Repeating" : "Running"}
+              />
+
+              {isRepeating && (
+                <>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
+                      label="Start"
+                      name="start"
+                      value={budgetStart}
+                      maxDate={budgetExpiration ?? undefined}
+                      onChange={(date) => setBudgetStart(date ?? null)}
+                      slotProps={{
+                        textField: { required: true, fullWidth: true },
+                      }}
+                    />
+                  </LocalizationProvider>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
+                      label="Expiration"
+                      name="expiration"
+                      value={budgetExpiration}
+                      minDate={budgetStart ?? undefined}
+                      onChange={(date) => setBudgetExpiration(date ?? null)}
+                      slotProps={{
+                        textField: { required: true, fullWidth: true },
+                      }}
+                    />
+                  </LocalizationProvider>
+                </>
+              )}
+
+              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <Button type="submit" variant="contained">
+                  Submit
+                </Button>
+              </Box>
+            </Stack>
+          </form>
+        </Paper>
+        <Box sx={{ flex: "1 1 280px", maxWidth: 440 }}>
+          <BudgetTypeDescription isRepeating={isRepeating} />
+        </Box>
+      </Box>
     </>
   );
 }
