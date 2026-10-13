@@ -11,6 +11,8 @@ import {
   IconButton,
   ButtonGroup,
   Paper,
+  Box,
+  CircularProgress,
 } from "@mui/material";
 import PageHeader from "../components/PageHeader.tsx";
 import { api } from "../utils/api.tsx";
@@ -24,6 +26,8 @@ function ShowBudgetPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const [budgetList, setBudgetList] = useState<Budget[]>([]);
+  // True until the first fetch finishes (whether it succeeds or fails)
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchBudgets = async () => {
@@ -32,6 +36,8 @@ function ShowBudgetPage() {
         setBudgetList(fetchedBudgets);
       } catch (error) {
         console.error("Budget Page Fetch Error:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchBudgets();
@@ -74,6 +80,15 @@ function ShowBudgetPage() {
           </Button>
         }
       />
+      {isLoading ? (
+        <Box
+          sx={{ display: "flex", justifyContent: "center", py: 6 }}
+          role="status"
+          aria-label="Loading budgets"
+        >
+          <CircularProgress />
+        </Box>
+      ) : (
       <TableContainer component={Paper} variant="outlined">
         <Table aria-label="budget table">
           <TableHead>
@@ -124,6 +139,7 @@ function ShowBudgetPage() {
       </TableContainer>
     </>
   );
+      )}
 }
 
 export default ShowBudgetPage;
