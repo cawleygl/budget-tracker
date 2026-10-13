@@ -107,13 +107,13 @@ export class ApiClient {
     budgetId: string,
     payload: PostBudgetPayload,
   ): Promise<void> {
-    this.request<Budget>(`/budgets/${budgetId}`, "PUT", payload);
+    await this.request<Budget>(`/budgets/${budgetId}`, "PUT", payload);
   }
   // DELETE: Delete a budget
   public async deleteBudget(
     budgetId: string,
   ): Promise<void> {
-    this.request<Cost>(`/budgets/${budgetId}`, "DELETE");
+    await this.request<Cost>(`/budgets/${budgetId}`, "DELETE");
   }
 
   /* COSTS */
@@ -139,14 +139,14 @@ export class ApiClient {
     costId: string,
     payload: PostCostPayload,
   ): Promise<void> {
-    this.request<Cost>(`/budgets/${budgetId}/costs/${costId}`, "PUT", payload);
+    await this.request<Cost>(`/budgets/${budgetId}/costs/${costId}`, "PUT", payload);
   }
   // DELETE: Delete a cost
   public async deleteCost(
     budgetId: string,
     costId: string,
   ): Promise<void> {
-    this.request<Cost>(`/budgets/${budgetId}/costs/${costId}`, "DELETE");
+    await this.request<Cost>(`/budgets/${budgetId}/costs/${costId}`, "DELETE");
   }
 
   /* VENDORS */
