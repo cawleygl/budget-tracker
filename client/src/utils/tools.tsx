@@ -95,3 +95,15 @@ export function calculateResetDates(
     expiration: start.add(Math.round(totalDays), "day").toDate(),
   };
 }
+
+/**
+ * Clamp a percentage to the 0-100 range
+ *
+ * Non-finite values (NaN, Infinity) become 0.
+ *
+ * @param value - Percentage to clamp
+ * @return - value limited to 0-100
+ */
+export function clampPercent(value: number): number {
+  return Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0;
+}

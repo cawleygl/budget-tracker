@@ -3,6 +3,7 @@ import { Box, LinearProgress, Paper, Typography } from "@mui/material";
 import { BudgetStatuses } from "../utils/dataTypes.tsx";
 import type { BudgetCalculations } from "../utils/dataTypes.tsx";
 import {
+  clampPercent,
   formatCurrencyFromAmount,
   formatDateWritten,
 } from "../utils/tools.tsx";
@@ -15,9 +16,6 @@ interface RepeatingBudgetVisualsProps {
   // Buttons shown in the expired budget breakdown (e.g. Reset Budget)
   expiredActions?: ReactNode;
 }
-
-const clampPercent = (value: number): number =>
-  Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0;
 
 /**
  * A progress bar with an optional marker line (e.g. where spending "should" be)
