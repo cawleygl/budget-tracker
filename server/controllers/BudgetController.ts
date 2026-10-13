@@ -1,7 +1,7 @@
 import { type Request, type Response } from "express";
 import { Controller } from "./Controller.ts";
 import { AppDataSource } from "../db/data-source.ts";
-import { Budget } from "../models/Budget.ts";
+import { Budget, BudgetTypes } from "../models/Budget.ts";
 import type { Repository, InsertResult, UpdateResult, DeleteResult } from "typeorm";
 
 export class BudgetController extends Controller {
@@ -12,6 +12,14 @@ export class BudgetController extends Controller {
     super();
     this.repository = AppDataSource.getRepository(Budget);
   };
+
+  // Running budgets never store dates: ignore any start or expiration sent
+  private clearDatesForRunning(body: Partial<Budget>): Partial<Budget> {
+    if (body.type === BudgetTypes.RUNNING) {
+      return { ...body, start: null, expiration: null };
+    }
+    return body;
+  }
 
   // GET /budgets/ - Get all Budgets
   public all = async (req: Request, res: Response): Promise<void> => {
@@ -38,7 +46,7 @@ export class BudgetController extends Controller {
       const result: InsertResult = await this.repository
         .createQueryBuilder("budget")
         .insert()
-        .values(req.body)
+        .values(this.clearDatesForRunning(req.body))
         .returning("id")
         .execute();
 
@@ -84,7 +92,7 @@ export class BudgetController extends Controller {
       const result: UpdateResult = await this.repository
         .createQueryBuilder("budget")
         .update(Budget)
-        .set({ ...req.body })
+        .set(this.clearDatesForRunning({ ...req.body }))
         .where("budget.id = :budgetId", {
           budgetId: super.parseIDFromParams(req.params.budgetId),
         })

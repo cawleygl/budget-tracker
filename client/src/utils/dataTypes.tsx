@@ -1,7 +1,16 @@
+export const BudgetTypes = {
+  repeating: "REPEATING",
+  running: "RUNNING",
+} as const;
+
+export type BudgetType = (typeof BudgetTypes)[keyof typeof BudgetTypes];
+
 export interface Budget {
   id: string;
   name: string;
   amount: number;
+  // Source of truth for repeating vs running; running budgets ignore the dates
+  type: BudgetType;
   start: Date | null;
   expiration: Date | null;
   createdAt: Date;
@@ -22,6 +31,7 @@ export interface PaymentMethod {
 export interface PostBudgetPayload {
   name: string;
   amount: number;
+  type: BudgetType;
   start: Date | null;
   expiration: Date | null;
 }

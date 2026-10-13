@@ -5,7 +5,7 @@ import type {
   BudgetStatus,
   CostType,
 } from "./dataTypes.tsx";
-import { BudgetStatuses, CostTypes } from "./dataTypes.tsx";
+import { BudgetStatuses, BudgetTypes, CostTypes } from "./dataTypes.tsx";
 import { regulateDate } from "../utils/tools.tsx";
 
 /**
@@ -16,12 +16,12 @@ import { regulateDate } from "../utils/tools.tsx";
 export function calculateBudget(
   budgetObj: Budget
 ): BudgetCalculations {
-  const expiration: Date | null = budgetObj.expiration
-    ? new Date(budgetObj.expiration)
-    : null;
-  const start: Date | null = budgetObj.start
-    ? new Date(budgetObj.start)
-    : null;
+  // Running budgets ignore their dates, even if some are stored
+  const isRunning = budgetObj.type === BudgetTypes.running;
+  const expiration: Date | null =
+    !isRunning && budgetObj.expiration ? new Date(budgetObj.expiration) : null;
+  const start: Date | null =
+    !isRunning && budgetObj.start ? new Date(budgetObj.start) : null;
   const today: Date = regulateDate(new Date(Date.now()));
 
   const status: string = calculateStatus(expiration, start, today);

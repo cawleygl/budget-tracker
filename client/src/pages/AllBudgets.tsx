@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import PageHeader from "../components/PageHeader.tsx";
 import { api } from "../utils/api.tsx";
-import type { Budget } from "../utils/dataTypes.tsx";
+import { type Budget, BudgetTypes } from "../utils/dataTypes.tsx";
 import { formatCurrencyFromAmount, formatDateNumbered } from "../utils/tools.tsx";
 import { Edit, Clear, Add } from "@mui/icons-material";
 
@@ -113,7 +113,9 @@ function ShowBudgetPage() {
                   </Button>
                 </TableCell>
                 <TableCell>{formatCurrencyFromAmount(budget.amount)}</TableCell>
-                <TableCell>{formatDateNumbered(budget.expiration)}</TableCell>
+                <TableCell>{formatDateNumbered(
+                    budget.type === BudgetTypes.running ? null : budget.expiration,
+                  )}</TableCell>
                 <TableCell>
                   <ButtonGroup>
                     <IconButton
@@ -137,9 +139,9 @@ function ShowBudgetPage() {
           </TableBody>
         </Table>
       </TableContainer>
+      )}
     </>
   );
-      )}
 }
 
 export default ShowBudgetPage;

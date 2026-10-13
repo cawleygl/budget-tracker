@@ -8,6 +8,7 @@ const nullableDate = z.preprocess(
 export const PostBudgetPayload = z.object({
 	name: z.string(),
 	amount: z.coerce.number(),
+	type: z.enum(["REPEATING", "RUNNING"]),
 	// Empty / missing values mean "no date" (z.coerce.date would turn null into the epoch)
 	start: nullableDate,
 	expiration: nullableDate

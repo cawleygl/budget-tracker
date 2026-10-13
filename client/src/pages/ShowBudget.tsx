@@ -35,6 +35,7 @@ import {
   type Cost,
   type BudgetCalculations,
   BudgetStatuses,
+  BudgetTypes,
   CostTypes,
 } from "../utils/dataTypes.tsx";
 import { Edit, Clear, Add } from "@mui/icons-material";
@@ -52,7 +53,7 @@ function ShowBudgetPage() {
     amount: 0,
   } as Budget);
 
-  // Repeating budgets have a start or expiration; running budgets have neither.
+  // Taken from the budget's type field.
   // "loading" until the budget has been fetched.
   const [budgetType, setBudgetType] = useState<
     "loading" | "running" | "repeating"
@@ -84,9 +85,7 @@ function ShowBudgetPage() {
         const fetchedBudget: Budget = await api.getBudgetById(budgetID);
         setBudgetObj(fetchedBudget as Budget);
         setBudgetType(
-          fetchedBudget.start || fetchedBudget.expiration
-            ? "repeating"
-            : "running",
+          fetchedBudget.type === BudgetTypes.running ? "running" : "repeating",
         );
 
         // Sort costs by createdAt date
@@ -125,7 +124,7 @@ function ShowBudgetPage() {
     event?.preventDefault();
 
     console.log(costId);
-    if (!validateIDs) return;
+    if (!validateIDs(budgetID, costId)) return;
 
     try {
       await api.deleteCost(budgetID, costId);

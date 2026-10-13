@@ -31,7 +31,8 @@ import {
   type PostCostPayload,
   type PostVendorPayload,
   type PostPaymentMethodPayload,
-  type PostBudgetPayload
+  type PostBudgetPayload,
+  BudgetTypes,
 } from "../utils/dataTypes.tsx";
 import { PostCostPayload as ZodPostCostPayload } from "../utils/zodSchema.tsx";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -75,7 +76,7 @@ function BudgetFormPage() {
         setBudgetExpiration(
           fetchedBudget.expiration ? dayjs(fetchedBudget.expiration) : null,
         );
-        setIsRepeating(!!fetchedBudget.start || !!fetchedBudget.expiration);
+        setIsRepeating(fetchedBudget.type !== BudgetTypes.running);
         console.log("---------- BUDGET SET ----------");
         console.log(budgetID);
         console.log(fetchedBudget.name);
@@ -100,12 +101,14 @@ function BudgetFormPage() {
       const formValues = ZodPostBudgetPayload.parse({
         name: formData.get("name"),
         amount: formData.get("amount"),
+        type: isRepeating ? BudgetTypes.repeating : BudgetTypes.running,
       });
 
       // Running budgets have no start or expiration
       const allValues = {
         name: formValues.name,
         amount: formValues.amount,
+        type: formValues.type,
         start: isRepeating && budgetStart ? budgetStart.toDate() : null,
         expiration:
           isRepeating && budgetExpiration ? budgetExpiration.toDate() : null,
