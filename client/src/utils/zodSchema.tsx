@@ -18,4 +18,6 @@ export const PostCostPayload = z.object({
 	description: z.string(),
 	amount: z.coerce.number(),
 	type: z.enum(["CREDIT", "EXPENSE"]),
+	recurring: z.boolean().optional(),
+	recurrs_on: nullableDate.optional(),
 });

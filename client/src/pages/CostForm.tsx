@@ -16,6 +16,7 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  Switch,
   Paper,
   Stack,
   Typography,
@@ -35,6 +36,10 @@ import {
   CostTypes,
 } from "../utils/dataTypes.tsx";
 import { PostCostPayload as ZodPostCostPayload } from "../utils/zodSchema.tsx";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs, { type Dayjs } from "dayjs";
 
 function CostFormPage() {
   const params = useParams();
@@ -47,6 +52,8 @@ function CostFormPage() {
   const [costDescription, setCostDescription] = useState<string>("");
   const [costAmount, setCostAmount] = useState<number>(0);
   const [costType, setCostType] = useState<CostType>(CostTypes.expense);
+  const [costRecurring, setCostRecurring] = useState<boolean>(false);
+  const [costRecurrsOn, setCostRecurrsOn] = useState<Dayjs | null>(null);
 
   const [checkedVendor, setCheckedVendor] = useState<string>("");
   const [vendorEntry, setVendorEntry] = useState<string>("");
@@ -65,6 +72,10 @@ function CostFormPage() {
         setCostDescription(fetchedCost.description);
         setCostAmount(fetchedCost.amount);
         setCostType(fetchedCost.type ?? CostTypes.expense);
+        setCostRecurring(fetchedCost.recurring ?? false);
+        setCostRecurrsOn(
+          fetchedCost.recurrs_on ? dayjs(fetchedCost.recurrs_on) : null,
+        );
         setCheckedVendor(fetchedCost.vendor.id);
         setCheckedPaymentMethod(fetchedCost.payment_method.id);
         console.log("---------- COST SET ----------");
@@ -120,6 +131,10 @@ function CostFormPage() {
         description: formValues.description,
         amount: formValues.amount,
         type: formValues.type,
+        recurring: costRecurring,
+        // Only recurring costs have a date they recur on
+        recurrs_on:
+          costRecurring && costRecurrsOn ? costRecurrsOn.toDate() : null,
         vendor: checkedVendor || undefined,
         payment_method: checkedPaymentMethod || undefined,
       } as PostCostPayload;
@@ -268,6 +283,30 @@ function CostFormPage() {
               />
             </RadioGroup>
           </FormControl>
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={costRecurring}
+                onChange={(event) => setCostRecurring(event.target.checked)}
+              />
+            }
+            label="Recurring"
+          />
+
+          {costRecurring && (
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="Recurs On"
+                name="recurrs_on"
+                value={costRecurrsOn}
+                onChange={(date) => setCostRecurrsOn(date ?? null)}
+                slotProps={{
+                  textField: { required: true, fullWidth: true },
+                }}
+              />
+            </LocalizationProvider>
+          )}
 
           {/* Payment Method List */}
           <Box>

@@ -35,6 +35,12 @@ export class Cost {
   })
   type!: CostType;
 
+  @Column({ type: "boolean", default: false })
+  recurring!: boolean;
+
+  @Column({ type: "timestamp with time zone", nullable: true })
+  recurrs_on!: Date | null;
+
   @CreateDateColumn({ type: "timestamp with time zone" })
   createdAt!: Date;
 

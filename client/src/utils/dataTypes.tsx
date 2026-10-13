@@ -62,6 +62,8 @@ export interface Cost {
   description: string;
   amount: number;
   type: CostType;
+  recurring: boolean;
+  recurrs_on: Date | null;
   vendor: Vendor;
   payment_method: PaymentMethod;
   createdAt: Date;
@@ -72,6 +74,9 @@ export interface PostCostPayload {
   description: string;
   amount: number;
   type: CostType;
+  // Defaults to false on the server when omitted
+  recurring?: boolean;
+  recurrs_on?: Date | null;
   vendor: string;
   payment_method: string;
 }
